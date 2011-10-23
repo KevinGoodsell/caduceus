@@ -1,16 +1,12 @@
 # XXX Missing Windows support
+# XXX Can't we do the utf-8 stuff automatically?
 
 import warnings
 import ctypes
 
-class STAFException(Exception):
-    def __init__(self, rc=0, result=''):
-        self.rc = rc
-        self.result = result
-
-    def __str__(self):
-        return '[RC %d] %s' % (self.rc, self.result)
-
+########################
+# Interface to the C API
+########################
 
 class _StafApi(object):
     '''
@@ -21,7 +17,7 @@ class _StafApi(object):
     # errcheck function
     def check_rc(result, func, arguments):
         if result != 0:
-            raise STAFException(result)
+            raise STAFError.from_rc(result)
 
     # Types
     Handle_t = ctypes.c_uint     # From STAF.h
@@ -59,95 +55,118 @@ class _StafApi(object):
     Free.errcheck = check_rc
 
 
-class STAFResult(object):
-    Ok                          = 0
-    InvalidAPI                  = 1
-    UnknownService              = 2
-    InvalidHandle               = 3
-    HandleAlreadyExists         = 4
-    HandleDoesNotExist          = 5
-    UnknownError                = 6
-    InvalidRequestString        = 7
-    InvalidServiceResult        = 8
-    REXXError                   = 9
-    BaseOSError                 = 10
-    ProcessAlreadyComplete      = 11
-    ProcessNotComplete          = 12
-    VariableDoesNotExist        = 13
-    UnResolvableString          = 14
-    InvalidResolveString        = 15
-    NoPathToMachine             = 16
-    FileOpenError               = 17
-    FileReadError               = 18
-    FileWriteError              = 19
-    FileDeleteError             = 20
-    STAFNotRunning              = 21
-    CommunicationError          = 22
-    TrusteeDoesNotExist         = 23
-    InvalidTrustLevel           = 24
-    AccessDenied                = 25
-    STAFRegistrationError       = 26
-    ServiceConfigurationError   = 27
-    QueueFull                   = 28
-    NoQueueElement              = 29
-    NotifieeDoesNotExist        = 30
-    InvalidAPILevel             = 31
-    ServiceNotUnregisterable    = 32
-    ServiceNotAvailable         = 33
-    SemaphoreDoesNotExist       = 34
-    NotSemaphoreOwner           = 35
-    SemaphoreHasPendingRequests = 36
-    Timeout                     = 37
-    JavaError                   = 38
-    ConverterError              = 39
-    MoveError                   = 40
-    InvalidObject               = 41
-    InvalidParm                 = 42
-    RequestNumberNotFound       = 43
-    InvalidAsynchOption         = 44
-    RequestNotComplete          = 45
-    ProcessAuthenticationDenied = 46
-    InvalidValue                = 47
-    DoesNotExist                = 48
-    AlreadyExists               = 49
-    DirectoryNotEmpty           = 50
-    DirectoryCopyError          = 51
-    DiagnosticsNotEnabled       = 52
-    HandleAuthenticationDenied  = 53
-    HandleAlreadyAuthenticated  = 54
-    InvalidSTAFVersion          = 55
-    RequestCancelled            = 56
-    CreateThreadError           = 57
-    MaximumSizeExceeded         = 58
-    MaximumHandlesExceeded      = 59
-    NotRequester                = 60
+#################################
+# Error handling, codes, messages
+#################################
 
-    def __init__(self, rc=0, result='', doUnmarshallResult=False):
-        self.rc = rc
-        self.result = result
-        if doUnmarshallResult:
-            # XXX unmarshall doesn't exist yet.
-            self.resultContext = unmarshall(self.result)
-            self.resultObj = self.resultContext.getRootObject()
-        else:
-            self.resultContext = None
-            self.resultObj = None
+# Only for internal use
+_return_codes = [
+    ('Ok',                          'No error'),
+    ('InvalidAPI',                  'Invalid API'),
+    ('UnknownService',              'Unknown service'),
+    ('InvalidHandle',               'Invalid handle'),
+    ('HandleAlreadyExists',         'Handle already exists'),
+    ('HandleDoesNotExist',          'Handle does not exist'),
+    ('UnknownError',                'Unknown error'),
+    ('InvalidRequestString',        'Invalid request string'),
+    ('InvalidServiceResult',        'Invalid service result'),
+    ('REXXError',                   'REXX Error'),
+    ('BaseOSError',                 'Base operating system error'),
+    ('ProcessAlreadyComplete',      'Process already complete'),
+    ('ProcessNotComplete',          'Process not complete'),
+    ('VariableDoesNotExist',        'Variable does not exist'),
+    ('UnResolvableString',          'Unresolvable string'),
+    ('InvalidResolveString',        'Invalid resolve string'),
+    ('NoPathToMachine',             'No path to endpoint'),
+    ('FileOpenError',               'File open error'),
+    ('FileReadError',               'File read error'),
+    ('FileWriteError',              'File write error'),
+    ('FileDeleteError',             'File delete error'),
+    ('STAFNotRunning',              'STAF not running'),
+    ('CommunicationError',          'Communication error'),
+    ('TrusteeDoesNotExist',         'Trusteee does not exist'),
+    ('InvalidTrustLevel',           'Invalid trust level'),
+    ('AccessDenied',                'Insufficient trust level'),
+    ('STAFRegistrationError',       'Registration error'),
+    ('ServiceConfigurationError',   'Service configuration error'),
+    ('QueueFull',                   'Queue full'),
+    ('NoQueueElement',              'No queue element'),
+    ('NotifieeDoesNotExist',        'Notifiee does not exist'),
+    ('InvalidAPILevel',             'Invalid API level'),
+    ('ServiceNotUnregisterable',    'Service not unregisterable'),
+    ('ServiceNotAvailable',         'Service not available'),
+    ('SemaphoreDoesNotExist',       'Semaphore does not exist'),
+    ('NotSemaphoreOwner',           'Not semaphore owner'),
+    ('SemaphoreHasPendingRequests', 'Semaphore has pending requests'),
+    ('Timeout',                     'Timeout'),
+    ('JavaError',                   'Java error'),
+    ('ConverterError',              'Converter error'),
+    ('MoveError',                   'Move error'),
+    ('InvalidObject',               'Invalid object'),
+    ('InvalidParm',                 'Invalid parm'),
+    ('RequestNumberNotFound',       'Request number not found'),
+    ('InvalidAsynchOption',         'Invalid asynchronous option'),
+    ('RequestNotComplete',          'Request not complete'),
+    ('ProcessAuthenticationDenied', 'Process authentication denied'),
+    ('InvalidValue',                'Invalid value'),
+    ('DoesNotExist',                'Does not exist'),
+    ('AlreadyExists',               'Already exists'),
+    ('DirectoryNotEmpty',           'Directory Not Empty'),
+    ('DirectoryCopyError',          'Directory Copy Error'),
+    ('DiagnosticsNotEnabled',       'Diagnostics Not Enabled'),
+    ('HandleAuthenticationDenied',  'Handle Authentication Denied'),
+    ('HandleAlreadyAuthenticated',  'Handle Already Authenticated'),
+    ('InvalidSTAFVersion',          'Invalid STAF Version'),
+    ('RequestCancelled',            'Request Cancelled'),
+    ('CreateThreadError',           'Create Thread Error'),
+    ('MaximumSizeExceeded',         'Maximum Size Exceeded'),
+    ('MaximumHandlesExceeded',      'Maximum Handles Exceeded'),
+    ('NotRequester',                'Not Pending Requester'),
+]
 
-    def __repr__(self):
-        if len(self.result) > 40:
-            result = repr(self.result[:40]) + '...'
-        else:
-            result = repr(self.result)
+class errors(object):
+    '''
+    Holds constants for STAF errors.
+    '''
+    for (i, (name, description)) in enumerate(_return_codes):
+        locals()[name] = i
 
-        return '<%s rc=%d result=%s>' % (self.__class__.__name__, self.rc,
-                                         result)
+    del i
+    del name
+    del description
+
+def strerror(rc):
+    try:
+        return _return_codes[rc][1]
+    except IndexError:
+        return None
+
+class STAFError(Exception):
+    # This is modelled after EnvironmentError.
+    def __init__(self, args):
+        super(STAFError, self).__init__(args)
+
+        self.rc = None
+        self.errstr = None
+        if isinstance(args, tuple) and len(args) == 2:
+            self.rc = args[0]
+            self.errstr = args[1]
+
+    @classmethod
+    def from_rc(cls, rc):
+        msg = strerror(rc)
+        return cls((rc, msg))
 
 
-class STAFHandle(object):
-    # Handle types
-    Standard = 0
-    Static   = 1
+#########################
+# The main STAF interface
+#########################
 
+# XXX
+# * repr
+# * context manager
+
+class Handle(object):
     # Submit modes
     Synchronous   = 0
     FireAndForget = 1
@@ -155,67 +174,35 @@ class STAFHandle(object):
     Retain        = 3
     QueueRetain   = 4
 
-    def __init__(self, handleNameOrNumber, handleType=None):
-        self.doUnmarshallResult = True
-
-        if handleType is not None:
-            warnings.warn('handleType parameter is unnecessary and deprecated',
-                          DeprecationWarning)
-
-            if (handleType == self.Standard and
-                    not isinstance(handleNameOrNumber, basestring)):
-                raise TypeError('A string is required if using standard handle type')
-            if (handleType == self.Static and
-                    not isinstance(handleNameOrNumber, (int, long))):
-                raise TypeError('An integer is required if using static handle type')
-
-        if isinstance(handleNameOrNumber, basestring):
+    def __init__(self, name):
+        if isinstance(name, basestring):
             handle = _StafApi.Handle_t()
-            _StafApi.RegisterUTF8(handleNameOrNumber.encode('utf-8'),
-                                  ctypes.byref(handle))
-
-            self.handle = handle.value
+            _StafApi.RegisterUTF8(name.encode('utf-8'), ctypes.byref(handle))
+            self._handle = handle.value
             self._static = False
         else:
-            self.handle = handleNameOrNumber
+            self._handle = name
             self._static = True
 
-    def unregister(self):
-        if not self._static:
-            _StafApi.UnRegister(self.handle)
-            self.handle = 0
-
-    def submit(self, location, service, request, mode=Synchronous):
-        # XXX
-        # * Using unicode output unconditionally probably breaks compatibility.
-        location = location.encode('utf-8')
+    def submit(self, where, service, request, mode=Synchronous,
+               unmarshal=True):
+        where = where.encode('utf-8')
         service = service.encode('utf-8')
         request = request.encode('utf-8')
         result_ptr = ctypes.POINTER(ctypes.c_char)()
         result_len = ctypes.c_uint()
         try:
-            _StafApi.Submit2UTF8(self.handle, mode, location, service, request,
+            _StafApi.Submit2UTF8(self._handle, mode, where, service, request,
                                  len(request), ctypes.byref(result_ptr),
                                  ctypes.byref(result_len))
-
             result = result_ptr[:result_len.value]
-            return STAFResult(0, result.decode('utf-8'),
-                              self.doUnmarshallResult)
-
+            return result.decode('utf-8')
         finally:
             # Need to free result_ptr even when rc indicates an error.
             if result_ptr:
-                ptr = ctypes.cast(result_ptr, ctypes.POINTER(ctypes.c_char))
-                _StafApi.Free(self.handle, ptr)
+                _StafApi.Free(self._handle, result_ptr)
 
-    def setDoUnmarshallResult(self, flag):
-        warnings.warn('setDoUnmarshallResult is deprecated '
-                      '(use doUnmarshallResult directly)', DeprecationWarning)
-        self.doUnmarshallResult = bool(flag)
-
-    def getDoUnmarshallResult(self):
-        warnings.warn('getDoUnmarshallResult is deprecated '
-                      '(use doUnmarshallResult directly)', DeprecationWarning)
-        return self.doUnmarshallResult
-
-    # XXX Add repr, context management
+    def unregister(self):
+        if not self._static:
+            _StafApi.UnRegister(self._handle)
+            self._handle = 0
