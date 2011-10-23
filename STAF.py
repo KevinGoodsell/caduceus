@@ -32,10 +32,12 @@ class _StafApi(object):
     RegisterUTF8 = _staf.STAFRegisterUTF8
     RegisterUTF8.argtypes = (ctypes.c_char_p, ctypes.POINTER(Handle_t))
     RegisterUTF8.restype = RC_t
+    RegisterUTF8.errcheck = check_rc
 
     UnRegister = _staf.STAFUnRegister
     UnRegister.argtypes = (Handle_t,)
     UnRegister.restype = RC_t
+    UnRegister.errcheck = check_rc
 
     Submit2UTF8 = _staf.STAFSubmit2UTF8
     Submit2UTF8.argtypes = (
@@ -49,10 +51,12 @@ class _StafApi(object):
         ctypes.POINTER(ctypes.c_uint),  # resultLength
     )
     Submit2UTF8.restype = RC_t
+    Submit2UTF8.errcheck = check_rc
 
     Free = _staf.STAFFree
     Free.argtypes = (Handle_t, ctypes.POINTER(ctypes.c_char))
     Free.restype = RC_t
+    Free.errcheck = check_rc
 
 
 class STAFResult(object):
@@ -121,7 +125,6 @@ class STAFResult(object):
     def __init__(self, rc=0, result='', doUnmarshallResult=False):
         self.rc = rc
         self.result = result
-        self._unmarshall = doUnmarshallResult
         if doUnmarshallResult:
             # XXX unmarshall doesn't exist yet.
             self.resultContext = unmarshall(self.result)
@@ -131,8 +134,13 @@ class STAFResult(object):
             self.resultObj = None
 
     def __repr__(self):
-        return 'STAFResult(%d, %r, %r)' % (self.rc, self.result,
-                                           self._unmarshall)
+        if len(self.result) > 40:
+            result = repr(self.result[:40]) + '...'
+        else:
+            result = repr(self.result)
+
+        return '<%s rc=%d result=%s>' % (self.__class__.__name__, self.rc,
+                                         result)
 
 
 class STAFHandle(object):
@@ -148,6 +156,8 @@ class STAFHandle(object):
     QueueRetain   = 4
 
     def __init__(self, handleNameOrNumber, handleType=None):
+        self.doUnmarshallResult = True
+
         if handleType is not None:
             warnings.warn('handleType parameter is unnecessary and deprecated',
                           DeprecationWarning)
@@ -176,6 +186,36 @@ class STAFHandle(object):
             self.handle = 0
 
     def submit(self, location, service, request, mode=Synchronous):
-        pass
+        # XXX
+        # * Using unicode output unconditionally probably breaks compatibility.
+        location = location.encode('utf-8')
+        service = service.encode('utf-8')
+        request = request.encode('utf-8')
+        result_ptr = ctypes.POINTER(ctypes.c_char)()
+        result_len = ctypes.c_uint()
+        try:
+            _StafApi.Submit2UTF8(self.handle, mode, location, service, request,
+                                 len(request), ctypes.byref(result_ptr),
+                                 ctypes.byref(result_len))
+
+            result = result_ptr[:result_len.value]
+            return STAFResult(0, result.decode('utf-8'),
+                              self.doUnmarshallResult)
+
+        finally:
+            # Need to free result_ptr even when rc indicates an error.
+            if result_ptr:
+                ptr = ctypes.cast(result_ptr, ctypes.POINTER(ctypes.c_char))
+                _StafApi.Free(self.handle, ptr)
+
+    def setDoUnmarshallResult(self, flag):
+        warnings.warn('setDoUnmarshallResult is deprecated '
+                      '(use doUnmarshallResult directly)', DeprecationWarning)
+        self.doUnmarshallResult = bool(flag)
+
+    def getDoUnmarshallResult(self):
+        warnings.warn('getDoUnmarshallResult is deprecated '
+                      '(use doUnmarshallResult directly)', DeprecationWarning)
+        return self.doUnmarshallResult
 
     # XXX Add repr, context management
