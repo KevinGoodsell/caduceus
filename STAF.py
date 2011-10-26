@@ -1,5 +1,10 @@
-# XXX Missing Windows support
-# XXX Can't we do the utf-8 stuff automatically?
+# XXX Missing:
+# * Windows support
+# * Unmarshalling
+# * Additional APIs
+#   - Private data manipulation
+# * Support a sequence for request
+
 
 import warnings
 import ctypes
@@ -24,9 +29,14 @@ class _StafApi(object):
     SyncOption_t = ctypes.c_uint # From STAF.h
     RC_t = ctypes.c_uint         # From STAFError.h
 
+    class Utf8(object):
+        @classmethod
+        def from_param(cls, text):
+            return text.encode('utf-8')
+
     # Functions
     RegisterUTF8 = _staf.STAFRegisterUTF8
-    RegisterUTF8.argtypes = (ctypes.c_char_p, ctypes.POINTER(Handle_t))
+    RegisterUTF8.argtypes = (Utf8, ctypes.POINTER(Handle_t))
     RegisterUTF8.restype = RC_t
     RegisterUTF8.errcheck = check_rc
 
@@ -39,8 +49,8 @@ class _StafApi(object):
     Submit2UTF8.argtypes = (
         Handle_t,                       # handle
         SyncOption_t,                   # syncOption
-        ctypes.c_char_p,                # where
-        ctypes.c_char_p,                # service
+        Utf8,                           # where
+        Utf8,                           # service
         ctypes.POINTER(ctypes.c_char),  # request
         ctypes.c_uint,                  # requestLength
         ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), # resultPtr
@@ -162,13 +172,9 @@ class STAFError(Exception):
 # The main STAF interface
 #########################
 
-# XXX
-# * repr
-# * context manager
-
 class Handle(object):
     # Submit modes
-    Synchronous   = 0
+    Sync          = 0
     FireAndForget = 1
     Queue         = 2
     Retain        = 3
@@ -177,23 +183,22 @@ class Handle(object):
     def __init__(self, name):
         if isinstance(name, basestring):
             handle = _StafApi.Handle_t()
-            _StafApi.RegisterUTF8(name.encode('utf-8'), ctypes.byref(handle))
+            _StafApi.RegisterUTF8(name, ctypes.byref(handle))
             self._handle = handle.value
             self._static = False
         else:
             self._handle = name
             self._static = True
 
-    def submit(self, where, service, request, mode=Synchronous,
+    def submit(self, where, service, request, sync_option=Sync,
                unmarshal=True):
-        where = where.encode('utf-8')
-        service = service.encode('utf-8')
         request = request.encode('utf-8')
         result_ptr = ctypes.POINTER(ctypes.c_char)()
         result_len = ctypes.c_uint()
         try:
-            _StafApi.Submit2UTF8(self._handle, mode, where, service, request,
-                                 len(request), ctypes.byref(result_ptr),
+            _StafApi.Submit2UTF8(self._handle, sync_option, where, service,
+                                 request, len(request),
+                                 ctypes.byref(result_ptr),
                                  ctypes.byref(result_len))
             result = result_ptr[:result_len.value]
             return result.decode('utf-8')
@@ -206,3 +211,19 @@ class Handle(object):
         if not self._static:
             _StafApi.UnRegister(self._handle)
             self._handle = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.unregister()
+
+        # Don't supress an exception
+        return False
+
+    def __repr__(self):
+        if self._static:
+            static = 'Static '
+        else:
+            static = ''
+        return '<STAF %sHandle %d>' % (static, self._handle)
