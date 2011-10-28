@@ -5,8 +5,6 @@
 #   - Private data manipulation
 # * Support a sequence for request
 
-
-import warnings
 import ctypes
 
 ########################
@@ -209,7 +207,14 @@ class Handle(object):
 
     def unregister(self):
         if not self._static:
-            _StafApi.UnRegister(self._handle)
+            try:
+                _StafApi.UnRegister(self._handle)
+            except STAFError, exc:
+                # If the handle isn't registered, we got what we wanted. This
+                # could happen if the STAF server restarts.
+                if exc.rc != errors.HandleDoesNotExist:
+                    raise
+
             self._handle = 0
 
     def __enter__(self):
