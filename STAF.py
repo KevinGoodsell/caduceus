@@ -1,8 +1,6 @@
 # XXX Missing:
 # * Windows support
 # * Unmarshalling
-# * Additional APIs
-#   - Private data manipulation
 # * Support a sequence for request
 
 import ctypes
@@ -26,6 +24,11 @@ class _StafApi(object):
     Handle_t = ctypes.c_uint     # From STAF.h
     SyncOption_t = ctypes.c_uint # From STAF.h
     RC_t = ctypes.c_uint         # From STAFError.h
+    # From STAFString.h:
+    class StringImplementation(ctypes.Structure):
+        # Incomplete type
+        pass
+    String_t = ctypes.POINTER(StringImplementation)
 
     class Utf8(object):
         @classmethod
@@ -62,6 +65,93 @@ class _StafApi(object):
     Free.restype = RC_t
     Free.errcheck = check_rc
 
+    # STAFString APIs:
+    StringConstruct = _staf.STAFStringConstruct
+    StringConstruct.argtypes = (
+        ctypes.POINTER(String_t),      # pString
+        ctypes.POINTER(ctypes.c_char), # buffer
+        ctypes.c_uint,                 # len
+        ctypes.POINTER(ctypes.c_uint), # osRC
+    )
+    StringConstruct.restype = RC_t
+    StringConstruct.errcheck = check_rc
+
+    StringGetBuffer = _staf.STAFStringGetBuffer
+    StringGetBuffer.argtypes = (
+        String_t,                                      # aString
+        ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), # buffer
+        ctypes.POINTER(ctypes.c_uint),                 # len
+        ctypes.POINTER(ctypes.c_uint),                 # osRC
+    )
+    StringGetBuffer.restype = RC_t
+    StringGetBuffer.errcheck = check_rc
+
+    StringDestruct = _staf.STAFStringDestruct
+    StringDestruct.argtypes = (ctypes.POINTER(String_t),
+                               ctypes.POINTER(ctypes.c_uint))
+    StringDestruct.restype = RC_t
+    StringDestruct.errcheck = check_rc
+
+    # Private data APIs:
+    AddPrivacyDelimiters = _staf.STAFAddPrivacyDelimiters
+    AddPrivacyDelimiters.argtypes = (String_t, ctypes.POINTER(String_t))
+    AddPrivacyDelimiters.restype = RC_t
+    AddPrivacyDelimiters.errcheck = check_rc
+
+    RemovePrivacyDelimiters = _staf.STAFRemovePrivacyDelimiters
+    RemovePrivacyDelimiters.argtypes = (String_t, ctypes.c_uint,
+                                        ctypes.POINTER(String_t))
+    RemovePrivacyDelimiters.restype = RC_t
+    RemovePrivacyDelimiters.errcheck = check_rc
+
+    MaskPrivateData = _staf.STAFMaskPrivateData
+    MaskPrivateData.argtypes = (String_t, ctypes.POINTER(String_t))
+    MaskPrivateData.restype = RC_t
+    MaskPrivateData.errcheck = check_rc
+
+    EscapePrivacyDelimiters = _staf.STAFEscapePrivacyDelimiters
+    EscapePrivacyDelimiters.argtypes = (String_t, ctypes.POINTER(String_t))
+    EscapePrivacyDelimiters.restype = RC_t
+    EscapePrivacyDelimiters.errcheck = check_rc
+
+# Wrapper for String_t
+class _String(object):
+    def __init__(self, data=None):
+        if data is None:
+            data = ''
+
+        self._as_parameter_ = _StafApi.String_t()
+        try:
+            utf8 = data.encode('utf-8')
+            _StafApi.StringConstruct(ctypes.byref(self._as_parameter_), utf8,
+                                     len(utf8), None)
+        except:
+            self.destroy()
+            raise
+
+    def byref(self):
+        return ctypes.byref(self._as_parameter_)
+
+    def destroy(self):
+        if self._as_parameter_:
+            _StafApi.StringDestruct(ctypes.byref(self._as_parameter_), None)
+
+    def __unicode__(self):
+        buf = ctypes.POINTER(ctypes.c_char)()
+        length = ctypes.c_uint()
+        _StafApi.StringGetBuffer(self, ctypes.byref(buf), ctypes.byref(length),
+                                 None)
+        result = buf[:length.value]
+        return result.decode('utf-8')
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.destroy()
+
+        # Don't supress an exception
+        return False
 
 #################################
 # Error handling, codes, messages
@@ -232,3 +322,29 @@ class Handle(object):
         else:
             static = ''
         return '<STAF %sHandle %d>' % (static, self._handle)
+
+###################
+# Private data APIs
+###################
+
+def _string_translate(data, translator):
+    # contextlib.nested can't handle errors in object construction.
+    with _String(data) as instr:
+        with _String() as result:
+            translator(instr, result.byref())
+            return unicode(result)
+
+def add_privacy_delimiters(data):
+    return _string_translate(data, _StafApi.AddPrivacyDelimiters)
+
+def remove_privacy_delimiters(data, num_levels=0):
+    def translator(instr, outstr):
+        return _StafApi.RemovePrivacyDelimiters(instr, num_levels, outstr)
+
+    return _string_translate(data, translator)
+
+def mask_private_data(data):
+    return _string_translate(data, _StafApi.MaskPrivateData)
+
+def escape_privacy_delimiters(data):
+    return _string_translate(data, _StafApi.EscapePrivacyDelimiters)
