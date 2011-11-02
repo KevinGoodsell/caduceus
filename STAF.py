@@ -18,7 +18,7 @@ class _StafApi(object):
     # errcheck function
     def check_rc(result, func, arguments):
         if result != 0:
-            raise STAFError.from_rc(result)
+            raise STAFError(result)
 
     # Types
     Handle_t = ctypes.c_uint     # From STAF.h
@@ -241,19 +241,17 @@ def strerror(rc):
 
 class STAFError(Exception):
     # This is modelled after EnvironmentError.
-    def __init__(self, args):
-        super(STAFError, self).__init__(args)
+    def __init__(self, *args):
+        super(STAFError, self).__init__(*args)
 
         self.rc = None
-        self.errstr = None
-        if isinstance(args, tuple) and len(args) == 2:
+        self.strerror = None
+        if len(args) == 1:
             self.rc = args[0]
-            self.errstr = args[1]
-
-    @classmethod
-    def from_rc(cls, rc):
-        msg = strerror(rc)
-        return cls((rc, msg))
+            self.strerror = strerror(self.rc)
+        elif len(args) == 2:
+            self.rc = args[0]
+            self.strerror = args[1]
 
 
 #########################
