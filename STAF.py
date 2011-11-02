@@ -117,10 +117,11 @@ class _StafApi(object):
 # Wrapper for String_t
 class _String(object):
     def __init__(self, data=None):
-        if data is None:
-            data = ''
-
         self._as_parameter_ = _StafApi.String_t()
+
+        if data is None:
+            return
+
         try:
             utf8 = data.encode('utf-8')
             _StafApi.StringConstruct(ctypes.byref(self._as_parameter_), utf8,
@@ -135,6 +136,9 @@ class _String(object):
     def destroy(self):
         if self._as_parameter_:
             _StafApi.StringDestruct(ctypes.byref(self._as_parameter_), None)
+
+    def __nonzero__(self):
+        return bool(self._as_parameter_)
 
     def __unicode__(self):
         buf = ctypes.POINTER(ctypes.c_char)()
