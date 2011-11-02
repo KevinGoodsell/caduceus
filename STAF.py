@@ -325,6 +325,12 @@ class Handle(object):
             static = ''
         return '<STAF %sHandle %d>' % (static, self._handle)
 
+    @staticmethod
+    def wrap_data(data):
+        # Note that the colon-length-colon-data format uses the length in
+        # characters, not bytes.
+        return ':%d:%s' % (len(data), data)
+
 ###################
 # Private data APIs
 ###################
