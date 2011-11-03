@@ -1,7 +1,6 @@
 # XXX Missing:
 # * Windows support
 # * Unmarshalling
-# * Support a sequence for request
 
 import ctypes
 
@@ -282,7 +281,15 @@ class Handle(object):
 
     def submit(self, where, service, request, sync_option=Sync,
                unmarshal=True):
-        request = request.encode('utf-8')
+        '''
+        Send a command to a STAF service. Arguments work mostly like the
+        Submit2UTF8 C API. Unmarshaling is done automatically unless otherwise
+        specified. 'request' can be a string like the C API, or it can be a
+        sequence. As a sequence of strings, the strings alternate between option
+        names and values. Multiple option names can be combined into a single
+        string. This avoids the need to escape or wrap values.
+        '''
+        request = self._build_request(request).encode('utf-8')
         result_ptr = ctypes.POINTER(ctypes.c_char)()
         result_len = ctypes.c_uint()
         try:
@@ -296,6 +303,25 @@ class Handle(object):
             # Need to free result_ptr even when rc indicates an error.
             if result_ptr:
                 _StafApi.Free(self._handle, result_ptr)
+
+    @classmethod
+    def _build_request(cls, request):
+        if isinstance(request, basestring):
+            return request
+
+        result = []
+        on_name = True
+        # look for alternating "option name", "option value". The latter needs
+        # to be wrapped, the former cannot be.
+        for piece in request:
+            if on_name:
+                result.append(piece)
+            else:
+                result.append(cls.wrap_data(piece))
+
+            on_name = not on_name
+
+        return " ".join(result)
 
     def unregister(self):
         if not self._static:
