@@ -256,6 +256,17 @@ class STAFError(Exception):
             self.rc = args[0]
             self.strerror = args[1]
 
+    def __str__(self):
+        if self.rc is not None:
+            return '[RC %d] %s' % (self.rc, self.strerror)
+        else:
+            if len(self.args) == 0:
+                return ''
+            elif len(self.args) == 1:
+                return str(self.args[0])
+            else:
+                return str(self.args)
+
 
 #########################
 # The main STAF interface
