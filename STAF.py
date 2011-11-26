@@ -1,6 +1,5 @@
 # XXX Missing:
 # * Windows support
-# * Unmarshalling
 
 import ctypes
 
@@ -280,6 +279,11 @@ class Handle(object):
     Retain        = 3
     QueueRetain   = 4
 
+    # Unmarshal modes
+    UnmarshalRecursive = 'unmarshal-recursive'
+    UnmarshalNonRecursive = 'unmarshal-non-recursive'
+    UnmarshalNone = 'unmarshal-none'
+
     def __init__(self, name):
         if isinstance(name, basestring):
             handle = _StafApi.Handle_t()
@@ -291,7 +295,7 @@ class Handle(object):
             self._static = True
 
     def submit(self, where, service, request, sync_option=Sync,
-               unmarshal=True):
+               unmarshal=UnmarshalRecursive):
         '''
         Send a command to a STAF service. Arguments work mostly like the
         Submit2UTF8 C API. Unmarshaling is done automatically unless otherwise
@@ -309,7 +313,7 @@ class Handle(object):
                                  ctypes.byref(result_ptr),
                                  ctypes.byref(result_len))
             result = result_ptr[:result_len.value]
-            return result.decode('utf-8')
+            return self.unmarshal(result.decode('utf-8'), unmarshal)
         finally:
             # Need to free result_ptr even when rc indicates an error.
             if result_ptr:
@@ -367,6 +371,13 @@ class Handle(object):
         # Note that the colon-length-colon-data format uses the length in
         # characters, not bytes.
         return ':%d:%s' % (len(data), data)
+
+    @classmethod
+    def unmarshal(cls, data, mode=UnmarshalRecursive):
+        from staf_marshal import unmarshal
+
+        return unmarshal(data, mode)
+
 
 ###################
 # Private data APIs
