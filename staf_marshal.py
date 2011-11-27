@@ -1,10 +1,8 @@
 import re
 
-from STAF import Handle
+from STAF import Handle, STAFError
 
-# XXX There's supposed to be one top-level exception class, but that won't work
-# if it's the current STAFError because it's too tied to RC.
-class STAFUnmarshalError(Exception):
+class STAFUnmarshalError(STAFError):
     pass
 
 marker = '@SDT/'

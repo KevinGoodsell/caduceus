@@ -16,7 +16,7 @@ class _StafApi(object):
     # errcheck function
     def check_rc(result, func, arguments):
         if result != 0:
-            raise STAFError(result)
+            raise STAFResultError(result)
 
     # Types
     Handle_t = ctypes.c_uint     # From STAF.h
@@ -242,9 +242,12 @@ def strerror(rc):
         return None
 
 class STAFError(Exception):
+    pass
+
+class STAFResultError(STAFError):
     # This is modelled after EnvironmentError.
     def __init__(self, *args):
-        super(STAFError, self).__init__(*args)
+        super(STAFResultError, self).__init__(*args)
 
         self.rc = None
         self.strerror = None
@@ -342,7 +345,7 @@ class Handle(object):
         if not self._static:
             try:
                 _StafApi.UnRegister(self._handle)
-            except STAFError, exc:
+            except STAFResultError, exc:
                 # If the handle isn't registered, we got what we wanted. This
                 # could happen if the STAF server restarts.
                 if exc.rc != errors.HandleDoesNotExist:
