@@ -1,6 +1,7 @@
 import re
 
-from STAF import Handle, STAFError
+from ._errors import STAFError
+from ._staf import Handle
 
 class STAFUnmarshalError(STAFError):
     pass
