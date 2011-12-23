@@ -115,15 +115,11 @@ class Unmarshaller(object):
         return (obj, rest)
 
 class ScalarUnmarshaller(Unmarshaller):
-    matcher = re.compile(
-        r'''^
-        (?P<type>[S0])  # Type indicator (string or none)
-        :(?P<len>\d+):  # Colon-length-colon
-        (?P<rest>.*)    # Value
-        $''', re.VERBOSE | re.DOTALL)
-
     @classmethod
     def unmarshal(cls, data, mode, context):
+        if not data.startswith('0') and not data.startswith('S'):
+            raise STAFUnmarshalError('bad format for scalar object')
+
         typ = data[0]
         (obj, rest) = cls.read_clc_obj(data[1:])
 
@@ -132,14 +128,13 @@ class ScalarUnmarshaller(Unmarshaller):
                 raise STAFUnmarshalError('bad format for none object')
             return (None, rest)
 
-        elif typ == 'S':
+        else: # typ == 'S'
             # Possibly do recursive unmarshalling.
             if mode == Handle.UnmarshalRecursive:
                 obj = unmarshal(obj, mode)
 
             return (obj, rest)
 
-        raise STAFUnmarshalError('bad format for scalar object')
 
 class MapUnmarshaller(Unmarshaller):
     @classmethod
