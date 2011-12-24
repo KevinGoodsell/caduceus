@@ -2,6 +2,7 @@ import ctypes
 
 from . import _api
 from ._errors import errors, STAFResultError
+from ._marshal import unmarshal_recursive
 
 #########################
 # The main STAF interface
@@ -9,16 +10,11 @@ from ._errors import errors, STAFResultError
 
 class Handle(object):
     # Submit modes (from STAF.h, STAFSyncOption_e)
-    Sync          = 0
-    FireAndForget = 1
-    Queue         = 2
-    Retain        = 3
-    QueueRetain   = 4
-
-    # Unmarshal modes
-    UnmarshalRecursive = 'unmarshal-recursive'
-    UnmarshalNonRecursive = 'unmarshal-non-recursive'
-    UnmarshalNone = 'unmarshal-none'
+    req_sync            = 0
+    req_fire_and_forget = 1
+    req_queue           = 2
+    req_retain          = 3
+    req_queue_retain    = 4
 
     def __init__(self, name):
         if isinstance(name, basestring):
@@ -30,8 +26,8 @@ class Handle(object):
             self._handle = name
             self._static = True
 
-    def submit(self, where, service, request, sync_option=Sync,
-               unmarshal=UnmarshalRecursive):
+    def submit(self, where, service, request, sync_option=req_sync,
+               unmarshal=unmarshal_recursive):
         '''
         Send a command to a STAF service. Arguments work mostly like the
         Submit2UTF8 C API. Unmarshaling is done automatically unless otherwise
@@ -40,6 +36,8 @@ class Handle(object):
         names and values. Multiple option names can be combined into a single
         string. This avoids the need to escape or wrap values.
         '''
+        from ._marshal import unmarshal as f_unmarshal
+
         request = self._build_request(request).encode('utf-8')
         result_ptr = ctypes.POINTER(ctypes.c_char)()
         result_len = ctypes.c_uint()
@@ -49,7 +47,7 @@ class Handle(object):
                              ctypes.byref(result_ptr),
                              ctypes.byref(result_len))
             result = result_ptr[:result_len.value]
-            return self.unmarshal(result.decode('utf-8'), unmarshal)
+            return f_unmarshal(result.decode('utf-8'), unmarshal)
         finally:
             # Need to free result_ptr even when rc indicates an error.
             if result_ptr:
@@ -107,12 +105,6 @@ class Handle(object):
         # Note that the colon-length-colon-data format uses the length in
         # characters, not bytes.
         return ':%d:%s' % (len(data), data)
-
-    @classmethod
-    def unmarshal(cls, data, mode=UnmarshalRecursive):
-        from .marshal import unmarshal
-
-        return unmarshal(data, mode)
 
 ###################
 # Private data APIs

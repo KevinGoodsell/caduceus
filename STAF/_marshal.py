@@ -1,15 +1,18 @@
 import re
 
 from ._errors import STAFError
-from ._staf import Handle
 
 class STAFUnmarshalError(STAFError):
     pass
 
+unmarshal_recursive     = 'unmarshal-recursive'
+unmarshal_non_recursive = 'unmarshal-non-recursive'
+unmarshal_none          = 'unmarshal-none'
+
 marker = '@SDT/'
 
-def unmarshal(data, mode):
-    if mode == Handle.UnmarshalNone or not data.startswith(marker):
+def unmarshal(data, mode=unmarshal_recursive):
+    if mode == unmarshal_none or not data.startswith(marker):
         return data
 
     (obj, remainder) = unmarshal_internal(data, mode)
@@ -130,7 +133,7 @@ class ScalarUnmarshaller(Unmarshaller):
 
         else: # typ == 'S'
             # Possibly do recursive unmarshalling.
-            if mode == Handle.UnmarshalRecursive:
+            if mode == unmarshal_recursive:
                 obj = unmarshal(obj, mode)
 
             return (obj, rest)

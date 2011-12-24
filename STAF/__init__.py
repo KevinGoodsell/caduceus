@@ -13,3 +13,13 @@ from ._errors import (
     STAFError,
     STAFResultError,
 )
+
+from ._marshal import (
+    unmarshal,
+    STAFUnmarshalError,
+    MapClassDefinition,
+    MapClass,
+    unmarshal_recursive,
+    unmarshal_non_recursive,
+    unmarshal_none,
+)
