@@ -55,6 +55,54 @@ class MapClass(dict):
     def display_short_name(self, key):
         return self.definition.display_short_name(key)
 
+    # Overrides to preserve ordering on item access.
+
+    def __iter__(self):
+        return iter(self.definition.keys)
+
+    def iterkeys(self):
+        return iter(self.definition.keys)
+
+    def keys(self):
+        return list(self.iterkeys())
+
+    def itervalues(self):
+        for key in self.definition.keys:
+            yield self[key]
+
+    def values(self):
+        return list(self.itervalues())
+
+    def iteritems(self):
+        for key in self.definition.keys:
+            yield (key, self[key])
+
+    def items(self):
+        return list(self.iteritems())
+
+    def __repr__(self):
+        items = []
+        for (k, v) in self.iteritems():
+            items.append('%r: %r' % (k, v))
+
+        return '{%s}' % ', '.join(items)
+
+    # NOTE: Python 2.7 adds viewitems(), viewkeys(), and viewvalues(). These
+    # aren't supported here because it would be tricky to make them work and
+    # they aren't really useful in MapClasses that aren't expected to have items
+    # added/removed. Because the inherited versions from dict won't work as
+    # expected, disable them.
+
+    def viewitems(self):
+        raise NotImplementedError('viewitems is not supported in MapClass')
+
+    def viewkeys(self):
+        raise NotImplementedError('viewkeys is not supported in MapClass')
+
+    def viewvalues(self):
+        raise NotImplementedError('viewvalues is not supported in MapClass')
+
+
 def unmarshal_internal(data, mode, context=None):
     if context is None:
         context = {}
