@@ -84,6 +84,12 @@ class Handle(object):
 
             self._handle = 0
 
+    def handle_num(self):
+        return self._handle
+
+    def is_static(self):
+        return self._static
+
     def __enter__(self):
         return self
 
