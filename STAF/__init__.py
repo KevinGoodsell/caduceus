@@ -1,6 +1,7 @@
 
 from ._staf import (
     Handle,
+    wrap_data,
     add_privacy_delimiters,
     remove_privacy_delimiters,
     mask_private_data,
