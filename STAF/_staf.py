@@ -1,7 +1,7 @@
 import ctypes
 
 from . import _api
-from ._errors import errors, STAFResultError
+from ._errors import errors, strerror, STAFResultError
 from ._marshal import unmarshal_recursive
 
 #########################
@@ -42,12 +42,21 @@ class Handle(object):
         result_ptr = ctypes.POINTER(ctypes.c_char)()
         result_len = ctypes.c_uint()
         try:
-            _api.Submit2UTF8(self._handle, sync_option, where, service,
-                             request, len(request),
-                             ctypes.byref(result_ptr),
-                             ctypes.byref(result_len))
-            result = result_ptr[:result_len.value]
-            return f_unmarshal(result.decode('utf-8'), unmarshal)
+            rc = _api.Submit2UTF8(self._handle, sync_option, where, service,
+                                  request, len(request),
+                                  ctypes.byref(result_ptr),
+                                  ctypes.byref(result_len))
+
+            if result_len.value > 0:
+                result = result_ptr[:result_len.value].decode('utf-8')
+            else:
+                result = ''
+
+            if rc != 0:
+                raise STAFResultError(rc, strerror(rc), result or None)
+
+            return f_unmarshal(result, unmarshal)
+
         finally:
             # Need to free result_ptr even when rc indicates an error.
             if result_ptr:

@@ -91,20 +91,31 @@ class STAFResultError(STAFError):
 
         self.rc = None
         self.strerror = None
+        self.extra = None
         if len(args) == 1:
             self.rc = args[0]
             self.strerror = strerror(self.rc)
         elif len(args) == 2:
             self.rc = args[0]
             self.strerror = args[1]
+        elif len(args) == 3:
+            self.rc = args[0]
+            self.strerror = args[1]
+            self.extra = args[2]
 
     def __str__(self):
         if self.rc is not None:
-            return '[RC %d] %s' % (self.rc, self.strerror)
+            # 'extra' isn't very predictable. It can be a big mess, but it's
+            # sometimes very handy. We include it if it's one line.
+            if self.extra is not None and '\n' not in self.extra:
+                extra = ' (%s)' % self.extra
+            else:
+                extra = ''
+
+            return '[RC %d] %s%s' % (self.rc, self.strerror, extra)
+
         else:
             if len(self.args) == 0:
                 return ''
-            elif len(self.args) == 1:
-                return str(self.args[0])
             else:
                 return str(self.args)

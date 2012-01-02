@@ -47,7 +47,6 @@ Submit2UTF8.argtypes = (
     ctypes.POINTER(ctypes.c_uint),  # resultLength
 )
 Submit2UTF8.restype = RC_t
-Submit2UTF8.errcheck = check_rc
 
 Free = staf.STAFFree
 Free.argtypes = (Handle_t, ctypes.POINTER(ctypes.c_char))
