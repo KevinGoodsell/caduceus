@@ -1,11 +1,20 @@
+
+
+'''
+Direct wrappers for STAF functions. These aren't "Pythonized", and aren't
+intended to be used directly.
+'''
+
 import ctypes
 
 from ._errors import STAFResultError
 
 staf = ctypes.cdll.LoadLibrary('libSTAF.so')
 
-# errcheck function
 def check_rc(result, func, arguments):
+    '''
+    ctypes errcheck function used to convert STAF function errors to exceptions.
+    '''
     if result != 0:
         raise STAFResultError(result)
 
@@ -20,6 +29,9 @@ class StringImplementation(ctypes.Structure):
 String_t = ctypes.POINTER(StringImplementation)
 
 class Utf8(object):
+    '''
+    Represents UTF-8 encoded parameters.
+    '''
     @classmethod
     def from_param(cls, text):
         return text.encode('utf-8')
@@ -102,8 +114,10 @@ EscapePrivacyDelimiters.argtypes = (String_t, ctypes.POINTER(String_t))
 EscapePrivacyDelimiters.restype = RC_t
 EscapePrivacyDelimiters.errcheck = check_rc
 
-# Wrapper for String_t
 class String(object):
+    '''
+    Wrapper for String_t with context management to deallocate.
+    '''
     def __init__(self, data=None):
         self._as_parameter_ = String_t()
 

@@ -1,3 +1,7 @@
+'''
+STAF data type marshalling.
+'''
+
 import re
 
 from ._errors import STAFError
@@ -12,6 +16,24 @@ unmarshal_none          = 'unmarshal-none'
 marker = '@SDT/'
 
 def unmarshal(data, mode=unmarshal_recursive):
+    '''
+    Try to unmarshal the string in 'data'. 'mode' determines how unmarshalling
+    is done.
+
+    'mode' can be one of the following:
+
+        unmarshal_recursive (default) - Tries to recursively unmarshal any
+        string result.
+
+        unmarshal_non_recursive - leaves string results as they are, doesn't
+        attept further unmarshalling.
+
+        unmarshal_none - doesn't do any unmarshalling.
+
+    Returns 'data' if it doesn't appear to be a marshalled object, or if 'mode'
+    is unmarshal_none.
+    '''
+
     if mode == unmarshal_none or not data.startswith(marker):
         return data
 
@@ -28,6 +50,12 @@ def unmarshal(data, mode=unmarshal_recursive):
 # those attributes if desired.
 
 class MapClassDefinition(object):
+    '''
+    Represents a map class definition, which provides the set of key names and
+    long and short display names for the map. This is accessible as the
+    'definition' field on a MapClass instance.
+    '''
+
     def __init__(self, name):
         self.name = name
         self.keys = []
@@ -44,6 +72,12 @@ class MapClassDefinition(object):
         return self._names[key][1]
 
 class MapClass(dict):
+    '''
+    Represents a map class instance. This is a dict and can be accessed the same
+    way. It also has 'display_name' and 'display_short_name' methods for getting
+    the display names for a key.
+    '''
+
     def __init__(self, definition, *args, **kwargs):
         super(MapClass, self).__init__(*args, **kwargs)
 
