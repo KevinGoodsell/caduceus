@@ -33,8 +33,17 @@ def unmarshal(data, mode=unmarshal_recursive):
     Returns 'data' if it doesn't appear to be a marshalled object, or if 'mode'
     is unmarshal_none.
     '''
+    try:
+        return unmarshal_force(data, mode)
+    except STAFUnmarshalError:
+        return data
 
-    if mode == unmarshal_none or not data.startswith(marker):
+def unmarshal_force(data, mode=unmarshal_recursive):
+    '''
+    Same as unmarshal, but raises STAFUnmarshalError if unmarshalling isn't
+    possible.
+    '''
+    if mode == unmarshal_none:
         return data
 
     (obj, remainder) = unmarshal_internal(data, mode)

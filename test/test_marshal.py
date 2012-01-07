@@ -2,6 +2,7 @@ import unittest
 
 from STAF import (
     unmarshal,
+    unmarshal_force,
     STAFUnmarshalError,
     unmarshal_non_recursive,
     unmarshal_none,
@@ -198,7 +199,7 @@ class Unmarshal(unittest.TestCase):
         # without first checking that it actually existed. This test verifies
         # that the bug is fixed.
         with self.assertRaises(STAFUnmarshalError):
-            unmarshal('@SDT/$')
+            unmarshal_force('@SDT/$')
 
         # XXX Add more tests here.
 

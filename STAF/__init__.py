@@ -32,6 +32,7 @@ from ._errors import (
 
 from ._marshal import (
     unmarshal,
+    unmarshal_force,
     STAFUnmarshalError,
     MapClassDefinition,
     MapClass,
