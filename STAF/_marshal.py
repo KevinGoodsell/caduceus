@@ -1,3 +1,7 @@
+# Copyright 2012 Kevin Goodsell
+#
+# This software is licensed under the Eclipse Public License (EPL) V1.0.
+
 '''
 STAF data type marshalling.
 '''
