@@ -197,15 +197,62 @@ class Unmarshal(unittest.TestCase):
             self.assertEqual(unmarshal(test, unmarshal_none), test)
 
     def testInvalidData(self):
-        # Scalars:
+        bad_strings = [
+            '',
+            '@',
+            '@SDT',
+            '@SDT/',
+            'SDT/$S:0:',
 
-        # There was previously a bug where the character after $ was read
-        # without first checking that it actually existed. This test verifies
-        # that the bug is fixed.
-        with self.assertRaises(STAFUnmarshalError):
-            unmarshal_force('@SDT/$')
+            # Scalars
 
-        # XXX Add more tests here.
+            # There was previously a bug where the character after $ was read
+            # without first checking that it actually existed. This test
+            # verifies that the bug is fixed.
+            '@SDT/$',
+            '@SDT/$J',
+
+            '@SDT/$0',
+            '@SDT/$0:',
+            '@SDT/$0:0',
+            '@SDT/$0:0::',
+            '@SDT/$0:1:a',
+
+            '@SDT/$S',
+            '@SDT/$S:',
+            '@SDT/$S:0',
+            '@SDT/$S:1:',
+            '@SDT/$S:2:foo',
+
+            # Lists
+
+            '@SDT/[0:10:@SDT/$0:0:',
+            '@SDT/[1:0:',
+            '@SDT/[0:0:foo',
+            '@SDT/[',
+            '@SDT/[0',
+            '@SDT/[0:',
+            '@SDT/[0:0',
+
+            # Maps
+
+            '@SDT/{:1:',
+            '@SDT/{:6::3:foo',
+            '@SDT/{:9::3:foobar',
+            '@SDT/{:10:@SDT/$0:0:',
+            '@SDT/{:22::3:foo@SDT/$0:0::3:bar',
+            '@SDT/{',
+            '@SDT/{:',
+            '@SDT/{:0',
+        ]
+
+        for s in bad_strings:
+            try:
+                self.assertRaises(STAFUnmarshalError, unmarshal_force, s)
+            except AssertionError as e:
+                # Hack the string info into the error.
+                e.args = ('STAFUnmarshalError not raised for %r' % s,)
+                raise
 
     def testRecursion(self):
         s = '@SDT/$S:24:@SDT/$S:13:@SDT/$S:3:foo'
