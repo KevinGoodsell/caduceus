@@ -130,6 +130,11 @@ class STAFResultError(STAFError):
 
     def __str__(self):
         if self.rc is not None:
+            if self.strerror is not None:
+                strerr = ' %s' % self.strerror
+            else:
+                strerr = ''
+
             # 'extra' isn't very predictable. It can be a big mess, but it's
             # sometimes very handy. We include it if it's one line.
             if self.extra is not None and '\n' not in self.extra:
@@ -137,7 +142,7 @@ class STAFResultError(STAFError):
             else:
                 extra = ''
 
-            return '[RC %d] %s%s' % (self.rc, self.strerror, extra)
+            return '[RC %d]%s%s' % (self.rc, strerr, extra)
 
         else:
             if len(self.args) == 0:
