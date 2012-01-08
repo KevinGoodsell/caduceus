@@ -1,6 +1,9 @@
 # Copyright 2012 Kevin Goodsell
 #
 # This software is licensed under the Eclipse Public License (EPL) V1.0.
+'''
+Python versions of STAF APIs.
+'''
 
 from __future__ import with_statement
 
@@ -15,6 +18,10 @@ from ._marshal import unmarshal_recursive
 #########################
 
 class Handle(object):
+    '''
+    Represents a STAF handle, used for most STAF interactions. Use as a context
+    manager to automatically unregister the handle.
+    '''
     # Submit modes (from STAF.h, STAFSyncOption_e)
     req_sync            = 0
     req_fire_and_forget = 1
@@ -23,6 +30,12 @@ class Handle(object):
     req_queue_retain    = 4
 
     def __init__(self, name):
+        '''
+        Create a Handle. If 'name' is a string, it provides the name of the
+        handle. Alternatively, 'name' can be an integer identifying a static
+        handle to use. Note that static handles don't get unregistered, even if
+        you call unregister().
+        '''
         if isinstance(name, basestring):
             handle = _api.Handle_t()
             _api.RegisterUTF8(name, ctypes.byref(handle))
@@ -88,6 +101,9 @@ class Handle(object):
         return " ".join(result)
 
     def unregister(self):
+        '''
+        Unregister the handle, if it's non-static.
+        '''
         if not self._static:
             try:
                 _api.UnRegister(self._handle)
@@ -100,9 +116,15 @@ class Handle(object):
             self._handle = 0
 
     def handle_num(self):
+        '''
+        Return the handle number.
+        '''
         return self._handle
 
     def is_static(self):
+        '''
+        Return a bool indicating whether this is a static handle.
+        '''
         return self._static
 
     def __enter__(self):
@@ -111,7 +133,7 @@ class Handle(object):
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.unregister()
 
-        # Don't supress an exception
+        # Don't suppress an exception
         return False
 
     def __repr__(self):
@@ -123,6 +145,10 @@ class Handle(object):
 
 
 def wrap_data(data):
+    '''
+    Make a colon-length-colon-prefixed string suitable for use as a single
+    service argument value in a submit() call.
+    '''
     # Note that the colon-length-colon-data format uses the length in
     # characters, not bytes.
     return ':%d:%s' % (len(data), data)
@@ -139,16 +165,28 @@ def _string_translate(data, translator):
             return unicode(result)
 
 def add_privacy_delimiters(data):
+    '''
+    Python version of STAFAddPrivacyDelimiters.
+    '''
     return _string_translate(data, _api.AddPrivacyDelimiters)
 
 def remove_privacy_delimiters(data, num_levels=0):
+    '''
+    Python version of STAFRemovePrivacyDelimiters.
+    '''
     def translator(instr, outstr):
         return _api.RemovePrivacyDelimiters(instr, num_levels, outstr)
 
     return _string_translate(data, translator)
 
 def mask_private_data(data):
+    '''
+    Python version of STAFMaskPrivateData.
+    '''
     return _string_translate(data, _api.MaskPrivateData)
 
 def escape_privacy_delimiters(data):
+    '''
+    Python version of STAFEscapePrivacyDelimiters.
+    '''
     return _string_translate(data, _api.EscapePrivacyDelimiters)

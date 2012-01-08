@@ -185,6 +185,9 @@ def get_unmarshaller(symbol):
         return None
 
 class Unmarshaller(object):
+    '''
+    Base class for all unmarshallers.
+    '''
     clc_matcher = re.compile(
         r'''^
         :(?P<len>\d+):  # Colon-length-colon
@@ -197,6 +200,12 @@ class Unmarshaller(object):
 
     @classmethod
     def read_clc_obj(cls, data):
+        '''
+        Read a colon-length-colon denoted object from data. That is, a colon,
+        integer length, colon, and finally a sequence of characters of the given
+        length. Returns a tuple of the object and everything that's left in
+        data. Raises STAFUnmarshalError if the format is not as expected.
+        '''
         m = cls.clc_matcher.match(data)
         if m is None:
             raise STAFUnmarshalError('bad format for colon-length-colon object')
