@@ -8,10 +8,28 @@ intended to be used directly.
 '''
 
 import ctypes
+import ctypes.util
 
 from ._errors import STAFResultError
 
-staf = ctypes.cdll.LoadLibrary('libSTAF.so')
+def find_staf():
+    # Try to avoid the overhead of a find_library call
+    for name in ('STAF', 'libSTAF.so'):
+        try:
+            return ctypes.cdll.LoadLibrary(name)
+        except:
+            pass
+
+    # find_library looks like it could have significant overhead, so only try it
+    # after direct load attempts fail.
+    name = ctypes.util.find_library('STAF')
+
+    if name:
+        return ctypes.cdll.LoadLibrary(name)
+    else:
+        raise ImportError("Couldn't find STAF library")
+
+staf = find_staf()
 
 def check_rc(result, func, arguments):
     '''
