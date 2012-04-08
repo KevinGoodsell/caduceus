@@ -10,7 +10,8 @@ Interface to the STAF API.
 # items actually come from and assumes they don't belong in the docs for
 # __init__.
 __all__ = [
-    'Handle', 'wrap_data', 'add_privacy_delimiters',
+    'REQ_SYNC', 'REQ_FIRE_AND_FORGET', 'REQ_QUEUE', 'REQ_RETAIN',
+    'REQ_QUEUE_RETAIN', 'Handle', 'wrap_data', 'add_privacy_delimiters',
     'remove_privacy_delimiters', 'mask_private_data',
     'escape_privacy_delimiters', 'errors', 'strerror', 'STAFError',
     'STAFResultError', 'unmarshal', 'unmarshal_force', 'STAFUnmarshalError',
@@ -19,6 +20,11 @@ __all__ = [
 ]
 
 from ._staf import (
+    REQ_SYNC,
+    REQ_FIRE_AND_FORGET,
+    REQ_QUEUE,
+    REQ_RETAIN,
+    REQ_QUEUE_RETAIN,
     Handle,
     wrap_data,
     add_privacy_delimiters,

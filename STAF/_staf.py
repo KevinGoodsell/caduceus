@@ -13,6 +13,13 @@ from . import _api
 from ._errors import errors, strerror, STAFResultError
 from ._marshal import UNMARSHAL_RECURSIVE
 
+# Submit modes (from STAF.h, STAFSyncOption_e)
+REQ_SYNC            = 0
+REQ_FIRE_AND_FORGET = 1
+REQ_QUEUE           = 2
+REQ_RETAIN          = 3
+REQ_QUEUE_RETAIN    = 4
+
 #########################
 # The main STAF interface
 #########################
@@ -22,12 +29,6 @@ class Handle(object):
     Represents a STAF handle, used for most STAF interactions. Use as a context
     manager to automatically unregister the handle.
     '''
-    # Submit modes (from STAF.h, STAFSyncOption_e)
-    REQ_SYNC            = 0
-    REQ_FIRE_AND_FORGET = 1
-    REQ_QUEUE           = 2
-    REQ_RETAIN          = 3
-    REQ_QUEUE_RETAIN    = 4
 
     def __init__(self, name):
         '''
