@@ -11,7 +11,7 @@ import ctypes
 
 from . import _api
 from ._errors import errors, strerror, STAFResultError
-from ._marshal import unmarshal_recursive
+from ._marshal import UNMARSHAL_RECURSIVE
 
 #########################
 # The main STAF interface
@@ -23,11 +23,11 @@ class Handle(object):
     manager to automatically unregister the handle.
     '''
     # Submit modes (from STAF.h, STAFSyncOption_e)
-    req_sync            = 0
-    req_fire_and_forget = 1
-    req_queue           = 2
-    req_retain          = 3
-    req_queue_retain    = 4
+    REQ_SYNC            = 0
+    REQ_FIRE_AND_FORGET = 1
+    REQ_QUEUE           = 2
+    REQ_RETAIN          = 3
+    REQ_QUEUE_RETAIN    = 4
 
     def __init__(self, name):
         '''
@@ -45,8 +45,8 @@ class Handle(object):
             self._handle = name
             self._static = True
 
-    def submit(self, where, service, request, sync_option=req_sync,
-               unmarshal=unmarshal_recursive):
+    def submit(self, where, service, request, sync_option=REQ_SYNC,
+               unmarshal=UNMARSHAL_RECURSIVE):
         '''
         Send a command to a STAF service. Arguments work mostly like the
         Submit2UTF8 C API. Unmarshaling is done automatically unless otherwise

@@ -87,7 +87,7 @@ class HandleTests(unittest.TestCase):
 
             # FIRE AND FORGET
 
-            req = h.submit('local', 'ping', 'ping', h.req_fire_and_forget)
+            req = h.submit('local', 'ping', 'ping', h.REQ_FIRE_AND_FORGET)
             self.assertTrue(req.isdigit())
 
             time.sleep(2)
@@ -104,7 +104,7 @@ class HandleTests(unittest.TestCase):
 
             # QUEUE
 
-            req = h.submit('local', 'ping', 'ping', h.req_queue)
+            req = h.submit('local', 'ping', 'ping', h.REQ_QUEUE)
             self.assertTrue(req.isdigit())
 
             time.sleep(2)
@@ -123,7 +123,7 @@ class HandleTests(unittest.TestCase):
 
             # RETAIN
 
-            req = h.submit('local', 'ping', 'ping', h.req_retain)
+            req = h.submit('local', 'ping', 'ping', h.REQ_RETAIN)
             self.assertTrue(req.isdigit())
 
             time.sleep(2)
@@ -140,7 +140,7 @@ class HandleTests(unittest.TestCase):
 
             # QUEUE AND RETAIN
 
-            req = h.submit('local', 'ping', 'ping', h.req_queue_retain)
+            req = h.submit('local', 'ping', 'ping', h.REQ_QUEUE_RETAIN)
             self.assertTrue(req.isdigit())
 
             time.sleep(2)

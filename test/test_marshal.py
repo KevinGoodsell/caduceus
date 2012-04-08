@@ -8,8 +8,8 @@ from STAF import (
     unmarshal,
     unmarshal_force,
     STAFUnmarshalError,
-    unmarshal_non_recursive,
-    unmarshal_none,
+    UNMARSHAL_NON_RECURSIVE,
+    UNMARSHAL_NONE,
 )
 
 class Unmarshal(unittest.TestCase):
@@ -194,7 +194,7 @@ class Unmarshal(unittest.TestCase):
 
         # Nothing should be unmarshaled with UnmarshalNone:
         for test in no_tag + tag:
-            self.assertEqual(unmarshal(test, unmarshal_none), test)
+            self.assertEqual(unmarshal(test, UNMARSHAL_NONE), test)
 
     def testInvalidData(self):
         bad_strings = [
@@ -257,12 +257,12 @@ class Unmarshal(unittest.TestCase):
     def testRecursion(self):
         s = '@SDT/$S:24:@SDT/$S:13:@SDT/$S:3:foo'
         self.assertEqual(unmarshal(s), 'foo')
-        self.assertEqual(unmarshal(s, unmarshal_non_recursive),
+        self.assertEqual(unmarshal(s, UNMARSHAL_NON_RECURSIVE),
                          '@SDT/$S:13:@SDT/$S:3:foo')
 
         s = '@SDT/[1:21:@SDT/$S:10:@SDT/[0:0:'
         self.assertEqual(unmarshal(s), [[]])
-        self.assertEqual(unmarshal(s, unmarshal_non_recursive), ['@SDT/[0:0:'])
+        self.assertEqual(unmarshal(s, UNMARSHAL_NON_RECURSIVE), ['@SDT/[0:0:'])
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)

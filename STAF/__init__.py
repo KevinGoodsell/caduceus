@@ -14,8 +14,8 @@ __all__ = [
     'remove_privacy_delimiters', 'mask_private_data',
     'escape_privacy_delimiters', 'errors', 'strerror', 'STAFError',
     'STAFResultError', 'unmarshal', 'unmarshal_force', 'STAFUnmarshalError',
-    'MapClassDefinition', 'MapClass', 'unmarshal_recursive',
-    'unmarshal_non_recursive', 'unmarshal_none',
+    'MapClassDefinition', 'MapClass', 'UNMARSHAL_RECURSIVE',
+    'UNMARSHAL_NON_RECURSIVE', 'UNMARSHAL_NONE',
 ]
 
 from ._staf import (
@@ -40,7 +40,7 @@ from ._marshal import (
     STAFUnmarshalError,
     MapClassDefinition,
     MapClass,
-    unmarshal_recursive,
-    unmarshal_non_recursive,
-    unmarshal_none,
+    UNMARSHAL_RECURSIVE,
+    UNMARSHAL_NON_RECURSIVE,
+    UNMARSHAL_NONE,
 )

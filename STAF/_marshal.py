@@ -13,41 +13,41 @@ from ._errors import STAFError
 class STAFUnmarshalError(STAFError):
     pass
 
-unmarshal_recursive     = 'unmarshal-recursive'
-unmarshal_non_recursive = 'unmarshal-non-recursive'
-unmarshal_none          = 'unmarshal-none'
+UNMARSHAL_RECURSIVE     = 'unmarshal-recursive'
+UNMARSHAL_NON_RECURSIVE = 'unmarshal-non-recursive'
+UNMARSHAL_NONE          = 'unmarshal-none'
 
 marker = '@SDT/'
 
-def unmarshal(data, mode=unmarshal_recursive):
+def unmarshal(data, mode=UNMARSHAL_RECURSIVE):
     '''
     Try to unmarshal the string in 'data'. 'mode' determines how unmarshaling
     is done.
 
     'mode' can be one of the following:
 
-        unmarshal_recursive (default) - Tries to recursively unmarshal any
+        UNMARSHAL_RECURSIVE (default) - Tries to recursively unmarshal any
         string result.
 
-        unmarshal_non_recursive - leaves string results as they are, doesn't
+        UNMARSHAL_NON_RECURSIVE - leaves string results as they are, doesn't
         attept further unmarshaling.
 
-        unmarshal_none - doesn't do any unmarshaling.
+        UNMARSHAL_NONE - doesn't do any unmarshaling.
 
     Returns 'data' if it doesn't appear to be a marshaled object, or if 'mode'
-    is unmarshal_none.
+    is UNMARSHAL_NONE.
     '''
     try:
         return unmarshal_force(data, mode)
     except STAFUnmarshalError:
         return data
 
-def unmarshal_force(data, mode=unmarshal_recursive):
+def unmarshal_force(data, mode=UNMARSHAL_RECURSIVE):
     '''
     Same as unmarshal, but raises STAFUnmarshalError if unmarshaling isn't
     possible.
     '''
-    if mode == unmarshal_none:
+    if mode == UNMARSHAL_NONE:
         return data
 
     (obj, remainder) = unmarshal_internal(data, mode)
@@ -237,7 +237,7 @@ class ScalarUnmarshaler(Unmarshaler):
 
         else: # typ == 'S'
             # Possibly do recursive unmarshaling.
-            if mode == unmarshal_recursive:
+            if mode == UNMARSHAL_RECURSIVE:
                 obj = unmarshal(obj, mode)
 
             return (obj, rest)
