@@ -136,10 +136,10 @@ class Unmarshal(unittest.TestCase):
                     '@SDT/$S:1:5'
         )
 
-        unmarshalled = unmarshal(data)
+        unmarshaled = unmarshal(data)
 
         self.assertEqual(
-            unmarshalled,
+            unmarshaled,
             [
                 {'name': 'Apple', 'color': 'Red', 'category': 'Fruit'},
                 {'name': 'Carrot', 'color': 'Orange', 'category': 'Vegetable'},
@@ -153,7 +153,7 @@ class Unmarshal(unittest.TestCase):
             ]
         )
 
-        for mc in unmarshalled[:3]:
+        for mc in unmarshaled[:3]:
             self.assertEqual(mc.display_name('name'), 'Item Name')
             self.assertEqual(mc.display_short_name('name'), 'Name')
 
@@ -163,7 +163,7 @@ class Unmarshal(unittest.TestCase):
             self.assertEqual(mc.display_name('category'), 'Category')
             self.assertIs(mc.display_short_name('category'), None)
 
-        for mc in unmarshalled[3:]:
+        for mc in unmarshaled[3:]:
             self.assertEqual(mc.display_name('fname'), 'First Name')
             self.assertEqual(mc.display_short_name('fname'), 'First')
 
@@ -188,11 +188,11 @@ class Unmarshal(unittest.TestCase):
             '@SDT/[1:15:@SDT/$S:5:Hello'
         ]
 
-        # Data without a tag should never be unmarshalled:
+        # Data without a tag should never be unmarshaled:
         for test in no_tag:
             self.assertEqual(unmarshal(test), test)
 
-        # Nothing should be unmarshalled with UnmarshalNone:
+        # Nothing should be unmarshaled with UnmarshalNone:
         for test in no_tag + tag:
             self.assertEqual(unmarshal(test, unmarshal_none), test)
 

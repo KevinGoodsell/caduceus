@@ -3,7 +3,7 @@
 # This software is licensed under the Eclipse Public License (EPL) V1.0.
 
 '''
-STAF data type marshalling.
+STAF data type marshaling.
 '''
 
 import re
@@ -21,7 +21,7 @@ marker = '@SDT/'
 
 def unmarshal(data, mode=unmarshal_recursive):
     '''
-    Try to unmarshal the string in 'data'. 'mode' determines how unmarshalling
+    Try to unmarshal the string in 'data'. 'mode' determines how unmarshaling
     is done.
 
     'mode' can be one of the following:
@@ -30,11 +30,11 @@ def unmarshal(data, mode=unmarshal_recursive):
         string result.
 
         unmarshal_non_recursive - leaves string results as they are, doesn't
-        attept further unmarshalling.
+        attept further unmarshaling.
 
-        unmarshal_none - doesn't do any unmarshalling.
+        unmarshal_none - doesn't do any unmarshaling.
 
-    Returns 'data' if it doesn't appear to be a marshalled object, or if 'mode'
+    Returns 'data' if it doesn't appear to be a marshaled object, or if 'mode'
     is unmarshal_none.
     '''
     try:
@@ -44,7 +44,7 @@ def unmarshal(data, mode=unmarshal_recursive):
 
 def unmarshal_force(data, mode=unmarshal_recursive):
     '''
-    Same as unmarshal, but raises STAFUnmarshalError if unmarshalling isn't
+    Same as unmarshal, but raises STAFUnmarshalError if unmarshaling isn't
     possible.
     '''
     if mode == unmarshal_none:
@@ -57,7 +57,7 @@ def unmarshal_force(data, mode=unmarshal_recursive):
 
     return obj
 
-# Special classes for dealing with STAF Map Class types. Unmarshalled map
+# Special classes for dealing with STAF Map Class types. Unmarshaled map
 # classes will instances of MapClass, which is derived from dict and can be used
 # as a dict. It also provides display_name() and display_short_name() to access
 # those attributes if desired.
@@ -155,38 +155,38 @@ def unmarshal_internal(data, mode, context=None):
         context = {}
 
     if not data.startswith(marker):
-        raise STAFUnmarshalError('missing marshalled data marker')
+        raise STAFUnmarshalError('missing marshaled data marker')
 
     sym_index = len(marker)
     try:
         symbol = data[sym_index]
         rest = data[sym_index+1:]
     except IndexError:
-        raise STAFUnmarshalError('incomplete marshalled data')
+        raise STAFUnmarshalError('incomplete marshaled data')
 
-    unmarshaller = get_unmarshaller(symbol)
-    if unmarshaller is None:
+    unmarshaler = get_unmarshaler(symbol)
+    if unmarshaler is None:
         raise STAFUnmarshalError('unrecognized data type indicator')
 
-    return unmarshaller.unmarshal(rest, mode, context)
+    return unmarshaler.unmarshal(rest, mode, context)
 
-def get_unmarshaller(symbol):
+def get_unmarshaler(symbol):
     if symbol == '$':
-        return ScalarUnmarshaller
+        return ScalarUnmarshaler
     elif symbol == '{':
-        return MapUnmarshaller
+        return MapUnmarshaler
     elif symbol == '[':
-        return ListUnmarshaller
+        return ListUnmarshaler
     elif symbol == '%':
-        return MapClassUnmarshaller
+        return MapClassUnmarshaler
     elif symbol == '*':
-        return ContextUnmarshaller
+        return ContextUnmarshaler
     else:
         return None
 
-class Unmarshaller(object):
+class Unmarshaler(object):
     '''
-    Base class for all unmarshallers.
+    Base class for all unmarshalers.
     '''
     clc_matcher = re.compile(
         r'''^
@@ -221,7 +221,7 @@ class Unmarshaller(object):
 
         return (obj, rest)
 
-class ScalarUnmarshaller(Unmarshaller):
+class ScalarUnmarshaler(Unmarshaler):
     @classmethod
     def unmarshal(cls, data, mode, context):
         if not data.startswith('0') and not data.startswith('S'):
@@ -236,14 +236,14 @@ class ScalarUnmarshaller(Unmarshaller):
             return (None, rest)
 
         else: # typ == 'S'
-            # Possibly do recursive unmarshalling.
+            # Possibly do recursive unmarshaling.
             if mode == unmarshal_recursive:
                 obj = unmarshal(obj, mode)
 
             return (obj, rest)
 
 
-class MapUnmarshaller(Unmarshaller):
+class MapUnmarshaler(Unmarshaler):
     @classmethod
     def unmarshal(cls, data, mode, context):
         (items, remainder) = cls.read_clc_obj(data)
@@ -258,7 +258,7 @@ class MapUnmarshaller(Unmarshaller):
 
         return (result, remainder)
 
-class ListUnmarshaller(Unmarshaller):
+class ListUnmarshaler(Unmarshaler):
     count_matcher = re.compile(r'''^
         (?P<count>\d+)  # Number of elements
         (?P<rest>.*)    # List items
@@ -285,7 +285,7 @@ class ListUnmarshaller(Unmarshaller):
 
         return (result, remainder)
 
-class MapClassUnmarshaller(Unmarshaller):
+class MapClassUnmarshaler(Unmarshaler):
     @classmethod
     def unmarshal(cls, data, mode, context):
         (content, remainder) = cls.read_clc_obj(data)
@@ -307,7 +307,7 @@ class MapClassUnmarshaller(Unmarshaller):
 
         return (result, remainder)
 
-class ContextUnmarshaller(Unmarshaller):
+class ContextUnmarshaler(Unmarshaler):
     @classmethod
     def unmarshal(cls, data, mode, context):
         (content, remainder) = cls.read_clc_obj(data)
