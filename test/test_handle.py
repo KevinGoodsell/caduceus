@@ -39,6 +39,10 @@ class HandleTests(unittest.TestCase):
             self.assertEqual(pieces['name'], 'test handle')
             self.assertEqual(pieces['state'], 'Registered')
 
+            self.assertTrue(h.is_open())
+
+        self.assertFalse(h.is_open())
+
 
     def testErrors(self):
         h = STAF.Handle('test handle')
