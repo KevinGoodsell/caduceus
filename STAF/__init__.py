@@ -50,3 +50,11 @@ from ._marshal import (
     UNMARSHAL_NON_RECURSIVE,
     UNMARSHAL_NONE,
 )
+
+# Clean up names. This gives 'STAF.Handle' istead of 'STAF._staf.Handle'
+for name in __all__:
+    obj = globals()[name]
+    if hasattr(obj, '__module__'):
+        obj.__module__ = 'STAF'
+del name
+del obj
