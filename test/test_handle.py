@@ -39,9 +39,9 @@ class HandleTests(unittest.TestCase):
             self.assertEqual(pieces['name'], 'test handle')
             self.assertEqual(pieces['state'], 'Registered')
 
-            self.assertTrue(h.is_open())
+            self.assertTrue(h.is_registered())
 
-        self.assertFalse(h.is_open())
+        self.assertFalse(h.is_registered())
 
 
     def testErrors(self):

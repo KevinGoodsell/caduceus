@@ -46,7 +46,7 @@ class Handle(object):
             self._handle = name
             self._static = True
 
-        self._open = True
+        self._registered = True
 
     def submit(self, where, service, request, sync_option=REQ_SYNC,
                unmarshal=UNMARSHAL_RECURSIVE):
@@ -116,7 +116,7 @@ class Handle(object):
                 if exc.rc != errors.HandleDoesNotExist:
                     raise
 
-            self._open = False
+            self._registered = False
 
     def handle_num(self):
         '''
@@ -130,8 +130,8 @@ class Handle(object):
         '''
         return self._static
 
-    def is_open(self):
-        return self._open
+    def is_registered(self):
+        return self._registered
 
     def __enter__(self):
         return self
@@ -143,10 +143,10 @@ class Handle(object):
         return False
 
     def __repr__(self):
-        if self._open:
+        if self._registered:
             closed = ''
         else:
-            closed = ' (closed)'
+            closed = ' (unregistered)'
 
         if self._static:
             static = 'Static '
