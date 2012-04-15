@@ -1,0 +1,372 @@
+Python-STAF
+
+Kevin Goodsell
+Sun, 15 Apr 2012 10:07:26 -0700
+
+INTRODUCTION
+------------
+python-staf is a Python interface for Software Test Automation Framework
+(STAF). It is an alternative to the PySTAF module that ships with STAF.
+Compared to PySTAF, python-staf is easier to use, presents a more
+Pythonic interface, supports modern Python constructs (e.g. context
+managers), and is written in pure Python using the ctypes foreign
+function interface.
+
+COMPARISON
+----------
+python-staf has the following improvements over PySTAF:
+
+* Pure Python. No need to compile, one library works for all supported
+  Python versions.
+* Classes are new-style, include docstrings, and follow conventions for
+  repr formatting.
+* Errors are consistently signalled with exceptions. PySTAF sometimes
+  uses exceptions, but usually requires checking one of the fields in
+  the result to determine success or failure.
+* Exception classes are based on standard exception types, so you won't
+  get a nasty surprise if you use 'except Exception:'.
+* Exceptions include error codes and string representations of the error
+  to make diagnosing errors easy.
+* Full support for Unicode.
+* Handle objects support the context manager interface.
+
+However, the following disadvantages also apply:
+
+* Currently no Python 3.x support.
+* No support for Python versions before 2.5 (because of the dependence
+  on ctypes and context managers)
+
+LICENSE
+-------
+python-staf is licensed under the Eclipse Public License version 1.0.
+See the COPYING file for the full license.
+
+INSTALLATION
+------------
+python-staf is a single Python package. Just make sure the STAF
+directory is in you Python path. One way to do this is to put it in the
+site-packages directory of your Python installation.
+
+DOCUMENTATION
+-------------
+python-staf is documented in docstrings. Run this for the full
+documentation:
+
+  pydoc STAF
+
+See also the STAF API documentation, which the python-staf docstrings
+reference.
+
+EXAMPLES
+--------
+The following example illustrates the basic usage of python-staf:
+
+  from pprint import pprint
+  from traceback import print_exc
+
+  import STAF
+
+  with STAF.Handle('example') as h:
+      print '** At the start, handle is', h
+      print
+
+      print '** Ping test:'
+      print h.submit('local', 'ping', 'ping')
+      print
+
+      print '** Unicode test:'
+      print repr(h.submit('local', 'echo',
+              u'echo \u1f00\u03bc\u03bd\u03b7\u03c3\u03af\u03b1'))
+      print
+
+      print '** List result:'
+      pprint(h.submit('local', 'service', 'list'))
+      print
+
+      print '** Complicated command:'
+      shell = '/bin/sh -c %X'
+      command = 'stat'
+      parms = '-L -t /etc'
+      print h.submit('local', 'process', ['start wait returnstdout shell', shell,
+                                          'command', command, 'parms', parms])
+      print
+
+      print '** Erroneous command:'
+      try:
+          h.submit('local', 'nosuchservice', 'domagic')
+      except Exception:
+          print_exc()
+      print
+
+  print '** At the end, handle is', h
+
+Output:
+
+  ** At the start, handle is <STAF Handle 15>
+
+  ** Ping test:
+  PONG
+
+  ** Unicode test:
+  u'\u1f00\u03bc\u03bd\u03b7\u03c3\u03af\u03b1'
+
+  ** List result:
+  [{u'name': u'DELAY', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'DIAG', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'ECHO', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'FS', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'HANDLE', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'HELP', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'LIFECYCLE', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'MISC', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'PING', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'PROCESS', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'QUEUE', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'SEM', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'SERVICE', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'SHUTDOWN', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'TRACE', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'TRUST', u'library': u'<Internal>', u'executable': None},
+   {u'name': u'VAR', u'library': u'<Internal>', u'executable': None}]
+
+  ** Complicated command:
+  {u'rc': u'0', u'key': None, u'fileList': [{u'rc': u'0', u'data': u'/etc 4096 8 41ed 0 0 15 17 78 0 0 1333845226 1334022349 1334022349 0 4096\n'}]}
+
+  ** Erroneous command:
+  Traceback (most recent call last):
+    File "example.py", line 33, in <module>
+      h.submit('local', 'nosuchservice', 'domagic')
+    File "/home/kevin/projects/staf/STAF/_staf.py", line 78, in submit
+      raise STAFResultError(rc, strerror(rc), result or None)
+  STAFResultError: [RC 2] Unknown service (nosuchservice)
+
+  ** At the end, handle is <STAF Handle 15 (unregistered)>
+
+COMPARISON WITH PySTAF
+----------------------
+Here's a version of the example from the previous section using PySTAF:
+
+  from pprint import pprint
+  from traceback import print_exc
+  import sys
+
+  import PySTAF
+
+  try:
+      h = PySTAF.STAFHandle('example')
+  except Exception:
+      print 'Failed to create handle'
+      sys.exit(0)
+
+  try:
+      print '** At the start, handle is', h
+      print
+
+      print '** Ping test:'
+      res = h.submit('local', 'ping', 'ping')
+      if res.rc != 0:
+          raise Exception('Yep, I have to raise my own exceptions.')
+      print res.resultObj
+      print
+
+      print '** Unicode test:'
+      try:
+          res = h.submit('local', 'echo',
+                  u'echo \u1f00\u03bc\u03bd\u03b7\u03c3\u03af\u03b1')
+          # No point in doing the rest, we won't get this far.
+      except UnicodeError:
+          print_exc()
+      print
+
+      print '** List result:'
+      res = h.submit('local', 'service', 'list')
+      if res.rc != 0:
+          raise Exception('List result test failed')
+      pprint(res.resultObj)
+      print
+
+      print '** Complicated command:'
+      shell = '/bin/sh -c %X'
+      command = 'stat'
+      parms = '-L -t /etc'
+      res = h.submit('local', 'process',
+              'start wait returnstdout shell %s command %s parms %s' %
+              (PySTAF.wrapData(shell), PySTAF.wrapData(command),
+               PySTAF.wrapData(parms)))
+      if res.rc != 0:
+          raise Exception('Complicated command test failed')
+      print res.resultObj
+      print
+
+      print '** Erroneous command:'
+      res = h.submit('local', 'nosuchservice', 'domagic')
+      if res.rc != 0:
+          print 'Command failed with rc %d, but what does that mean?' % res.rc
+      print
+
+  finally:
+      h.unregister()
+
+  print '** At the end, handle is %r' % h
+
+Note that a try/finally is required to unregister the handle, a with
+statement will not work. Also, each submit call requires checking the
+result value and retrieving the final result from an attribute, which is
+rather tedious. To examine some other differences, let's take the output
+section by section:
+
+  ** At the start, handle is <PySTAF.STAFHandle instance at 0xa02866c>
+
+The PySTAF reprs tend not to be very helpful. STAFHandle simply uses the
+default repr. In python-staf I've tried to include useful reprs. The
+Handle repr includes the handle number, and notes if it is static and if
+it is unregistered.
+
+  ** Ping test:
+  PONG
+
+This works fine, but the code requires extra steps to do even minimal
+error handling.
+
+  ** Unicode test:
+  Traceback (most recent call last):
+    File "pystaf-example.py", line 27, in <module>
+      u'echo \u1f00\u03bc\u03bd\u03b7\u03c3\u03af\u03b1')
+    File "/usr/local/staf/lib/PySTAF.py", line 166, in submit
+      rc, result = PYSTAF.STAFSubmit(self.handle, mode, location, service, request)
+  UnicodeEncodeError: 'ascii' codec can't encode characters in position 5-11: ordinal not in range(128)
+
+As far as I can tell, PySTAF just doesn't do Unicode (at least for
+Python 2.x). The underlying STAF API is not a UTF-8-supporting version.
+
+  ** List result:
+  [{'executable': None,
+    'library': '<Internal>',
+    'name': 'DELAY',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'DIAG',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'ECHO',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'FS',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'HANDLE',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'HELP',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'LIFECYCLE',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'MISC',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'PING',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'PROCESS',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'QUEUE',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'SEM',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'SERVICE',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'SHUTDOWN',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'TRACE',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'TRUST',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'},
+   {'executable': None,
+    'library': '<Internal>',
+    'name': 'VAR',
+    'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'}]
+
+Because PySTAF unmarshals map class instances to plain dicts it is
+handled a bit more nicely by the pprint module. However, it loses the
+ordering of elements in the map class and includes the class name as an
+element of the dict. python-staf uses a dict-derived class that
+maintains item ordering and also includes an attribute for the map class
+definition, providing access to the map class name. The long and short
+display names for each key can also be accessed through methods on
+either the map class instance or the map class definition. Everything
+you might need is available, but stays out of the way if you don't want
+it.
+
+  ** Complicated command:
+  {'staf-map-class-name': 'STAF/Service/Process/CompletionInfo', 'fileList': [{'staf-map-class-name': 'STAF/Service/Process/ReturnFileInfo', 'data': '/etc 4096 8 41ed 0 0 15 17 78 0 0 1333845226 1334022349 1334022349 0 4096\n', 'rc': '0'}], 'key': None, 'rc': '0'}
+
+The output here is the same, but constructing the command is
+significantly more problematic. STAF requires escaping for option values
+(it's not required in all cases, but probably always advisable). PySTAF
+supports this with the wrapData function, and you have to do it
+yourself. python-staf also has a wrap_data (using a more Pythonic name),
+but you shouldn't need it. Instead, you can identify which components of
+the command are values by breaking them into separate list elements. All
+odd-numbered list elements are automatically escaped. This is slightly
+inconvenient, because you have to keep track of which list elements are
+options and which are values (it's an error in STAF to escape an
+option), but STAF's awkward command parsing makes it impossible to do
+this automatically.
+
+  ** Erroneous command:
+  Command failed with rc 2, but what does that mean?
+
+PySTAF will give you error codes (which you must check manually), but
+translating those codes back to error messages is left as an exercise
+for the programmer. STAF's API unfortunately provides no way to look up
+error codes. python-staf takes care of this as well as it can by keeping
+a list of known error codes and the corresponding string representation
+of the error, and building exception objects that are about as useful as
+they can be.
+
+  ** At the end, handle is <PySTAF.STAFHandle instance at 0xa02866c>
+
+Just like before, the STAFHandle repr isn't very helpful, and gives no
+indication that the handle has been released.
+
+Finally, let's examine the output when the STAF service is not running:
+
+  Traceback (most recent call last):
+    File "pystaf-example.py", line 8, in <module>
+      h = PySTAF.STAFHandle('magic')
+    File "/usr/local/staf/lib/PySTAF.py", line 159, in __init__
+      raise STAFException(rc)
+  PySTAF.STAFException: <PySTAF.STAFException instance at 0x8d7666c>
+
+Where did the traceback come from? We should have caught the exception
+and printed "Failed to create handle" before exiting. Unfortunately,
+STAFException is not derived from any standard Python exception class,
+so our attempt to catch all exceptions with 'except Exception' failed.
+Instead, STAFException is a stand-alone old-style class. This can
+complicate error handling throughout an application using PySTAF because
+catching Exception for generic error handling is no longer sufficient.
+Additionally, even if the exception had been created with a useful
+message, the STAFException repr doesn't show it.
