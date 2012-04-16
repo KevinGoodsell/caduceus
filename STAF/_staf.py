@@ -131,6 +131,9 @@ class Handle(object):
         return self._static
 
     def is_registered(self):
+        '''
+        Return a bool indicating whether this handle is currently registered.
+        '''
         return self._registered
 
     def __enter__(self):

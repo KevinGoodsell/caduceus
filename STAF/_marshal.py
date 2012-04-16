@@ -75,20 +75,40 @@ class MapClassDefinition(object):
         self._names = {} # {'key' : ('display name', 'short display name')}
 
     def add_item(self, key, display_name, display_short_name=None):
+        '''
+        Add a key and a display name for it. Optionally include a short display
+        name.
+        '''
         self.keys.append(key)
         self._names[key] = (display_name, display_short_name)
 
     def display_name(self, key):
+        '''
+        Returns the display name for 'key'.
+        '''
         return self._names[key][0]
 
     def display_short_name(self, key):
+        '''
+        Returns the short form of the display name for 'key'.
+        '''
         return self._names[key][1]
+
+def add_docstring(method):
+    '''
+    Add a docstring to method by pulling it from the corresponding method in
+    dict. Only for use with dict-derived classes overriding dict methods.
+    '''
+    method.__doc__ = getattr(dict, method.__name__).__doc__
 
 class MapClass(dict):
     '''
     Represents a map class instance. This is a dict and can be accessed the same
     way. It also has 'display_name' and 'display_short_name' methods for getting
     the display names for a key.
+
+    Removing items from a MapClass isn't supported, and will probably cause
+    unexpected behavior.
     '''
 
     def __init__(self, definition, *args, **kwargs):
@@ -97,9 +117,15 @@ class MapClass(dict):
         self.definition = definition
 
     def display_name(self, key):
+        '''
+        Returns the display name for 'key'.
+        '''
         return self.definition.display_name(key)
 
     def display_short_name(self, key):
+        '''
+        Returns the short form of the display name for 'key'.
+        '''
         return self.definition.display_short_name(key)
 
     # Overrides to preserve ordering on item access.
@@ -136,20 +162,39 @@ class MapClass(dict):
 
         return '{%s}' % ', '.join(items)
 
+    add_docstring(__iter__)
+    add_docstring(iterkeys)
+    add_docstring(keys)
+    add_docstring(itervalues)
+    add_docstring(values)
+    add_docstring(iteritems)
+    add_docstring(items)
+    add_docstring(__repr__)
+
     # NOTE: Python 2.7 adds viewitems(), viewkeys(), and viewvalues(). These
     # aren't supported here because it would be tricky to make them work and
     # they aren't really useful in MapClasses that aren't expected to have items
     # added/removed. Because the inherited versions from dict won't work as
     # expected, disable them.
 
-    def viewitems(self):
-        raise NotImplementedError('viewitems is not supported in MapClass')
+    if hasattr(dict, 'viewitems'):
+        def viewitems(self):
+            '''
+            Unsupported method, raises NotImplementedError.
+            '''
+            raise NotImplementedError('viewitems is not supported in MapClass')
 
-    def viewkeys(self):
-        raise NotImplementedError('viewkeys is not supported in MapClass')
+        def viewkeys(self):
+            '''
+            Unsupported method, raises NotImplementedError.
+            '''
+            raise NotImplementedError('viewkeys is not supported in MapClass')
 
-    def viewvalues(self):
-        raise NotImplementedError('viewvalues is not supported in MapClass')
+        def viewvalues(self):
+            '''
+            Unsupported method, raises NotImplementedError.
+            '''
+            raise NotImplementedError('viewvalues is not supported in MapClass')
 
 
 def unmarshal_internal(data, mode, context=None):
