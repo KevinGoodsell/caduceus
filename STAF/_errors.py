@@ -7,78 +7,79 @@ STAF error information.
 '''
 
 # Only for internal use
-_return_codes = [
-    ('Ok',                          'No error'),
-    ('InvalidAPI',                  'Invalid API'),
-    ('UnknownService',              'Unknown service'),
-    ('InvalidHandle',               'Invalid handle'),
-    ('HandleAlreadyExists',         'Handle already exists'),
-    ('HandleDoesNotExist',          'Handle does not exist'),
-    ('UnknownError',                'Unknown error'),
-    ('InvalidRequestString',        'Invalid request string'),
-    ('InvalidServiceResult',        'Invalid service result'),
-    ('REXXError',                   'REXX Error'),
-    ('BaseOSError',                 'Base operating system error'),
-    ('ProcessAlreadyComplete',      'Process already complete'),
-    ('ProcessNotComplete',          'Process not complete'),
-    ('VariableDoesNotExist',        'Variable does not exist'),
-    ('UnResolvableString',          'Unresolvable string'),
-    ('InvalidResolveString',        'Invalid resolve string'),
-    ('NoPathToMachine',             'No path to endpoint'),
-    ('FileOpenError',               'File open error'),
-    ('FileReadError',               'File read error'),
-    ('FileWriteError',              'File write error'),
-    ('FileDeleteError',             'File delete error'),
-    ('STAFNotRunning',              'STAF not running'),
-    ('CommunicationError',          'Communication error'),
-    ('TrusteeDoesNotExist',         'Trusteee does not exist'),
-    ('InvalidTrustLevel',           'Invalid trust level'),
-    ('AccessDenied',                'Insufficient trust level'),
-    ('STAFRegistrationError',       'Registration error'),
-    ('ServiceConfigurationError',   'Service configuration error'),
-    ('QueueFull',                   'Queue full'),
-    ('NoQueueElement',              'No queue element'),
-    ('NotifieeDoesNotExist',        'Notifiee does not exist'),
-    ('InvalidAPILevel',             'Invalid API level'),
-    ('ServiceNotUnregisterable',    'Service not unregisterable'),
-    ('ServiceNotAvailable',         'Service not available'),
-    ('SemaphoreDoesNotExist',       'Semaphore does not exist'),
-    ('NotSemaphoreOwner',           'Not semaphore owner'),
-    ('SemaphoreHasPendingRequests', 'Semaphore has pending requests'),
-    ('Timeout',                     'Timeout'),
-    ('JavaError',                   'Java error'),
-    ('ConverterError',              'Converter error'),
-    ('MoveError',                   'Move error'),
-    ('InvalidObject',               'Invalid object'),
-    ('InvalidParm',                 'Invalid parm'),
-    ('RequestNumberNotFound',       'Request number not found'),
-    ('InvalidAsynchOption',         'Invalid asynchronous option'),
-    ('RequestNotComplete',          'Request not complete'),
-    ('ProcessAuthenticationDenied', 'Process authentication denied'),
-    ('InvalidValue',                'Invalid value'),
-    ('DoesNotExist',                'Does not exist'),
-    ('AlreadyExists',               'Already exists'),
-    ('DirectoryNotEmpty',           'Directory Not Empty'),
-    ('DirectoryCopyError',          'Directory Copy Error'),
-    ('DiagnosticsNotEnabled',       'Diagnostics Not Enabled'),
-    ('HandleAuthenticationDenied',  'Handle Authentication Denied'),
-    ('HandleAlreadyAuthenticated',  'Handle Already Authenticated'),
-    ('InvalidSTAFVersion',          'Invalid STAF Version'),
-    ('RequestCancelled',            'Request Cancelled'),
-    ('CreateThreadError',           'Create Thread Error'),
-    ('MaximumSizeExceeded',         'Maximum Size Exceeded'),
-    ('MaximumHandlesExceeded',      'Maximum Handles Exceeded'),
-    ('NotRequester',                'Not Pending Requester'),
-]
+_return_codes = {
+    0    : ('Ok',                          'No error'),
+    1    : ('InvalidAPI',                  'Invalid API'),
+    2    : ('UnknownService',              'Unknown service'),
+    3    : ('InvalidHandle',               'Invalid handle'),
+    4    : ('HandleAlreadyExists',         'Handle already exists'),
+    5    : ('HandleDoesNotExist',          'Handle does not exist'),
+    6    : ('UnknownError',                'Unknown error'),
+    7    : ('InvalidRequestString',        'Invalid request string'),
+    8    : ('InvalidServiceResult',        'Invalid service result'),
+    9    : ('REXXError',                   'REXX Error'),
+    10   : ('BaseOSError',                 'Base operating system error'),
+    11   : ('ProcessAlreadyComplete',      'Process already complete'),
+    12   : ('ProcessNotComplete',          'Process not complete'),
+    13   : ('VariableDoesNotExist',        'Variable does not exist'),
+    14   : ('UnResolvableString',          'Unresolvable string'),
+    15   : ('InvalidResolveString',        'Invalid resolve string'),
+    16   : ('NoPathToMachine',             'No path to endpoint'),
+    17   : ('FileOpenError',               'File open error'),
+    18   : ('FileReadError',               'File read error'),
+    19   : ('FileWriteError',              'File write error'),
+    20   : ('FileDeleteError',             'File delete error'),
+    21   : ('STAFNotRunning',              'STAF not running'),
+    22   : ('CommunicationError',          'Communication error'),
+    23   : ('TrusteeDoesNotExist',         'Trusteee does not exist'),
+    24   : ('InvalidTrustLevel',           'Invalid trust level'),
+    25   : ('AccessDenied',                'Insufficient trust level'),
+    26   : ('STAFRegistrationError',       'Registration error'),
+    27   : ('ServiceConfigurationError',   'Service configuration error'),
+    28   : ('QueueFull',                   'Queue full'),
+    29   : ('NoQueueElement',              'No queue element'),
+    30   : ('NotifieeDoesNotExist',        'Notifiee does not exist'),
+    31   : ('InvalidAPILevel',             'Invalid API level'),
+    32   : ('ServiceNotUnregisterable',    'Service not unregisterable'),
+    33   : ('ServiceNotAvailable',         'Service not available'),
+    34   : ('SemaphoreDoesNotExist',       'Semaphore does not exist'),
+    35   : ('NotSemaphoreOwner',           'Not semaphore owner'),
+    36   : ('SemaphoreHasPendingRequests', 'Semaphore has pending requests'),
+    37   : ('Timeout',                     'Timeout'),
+    38   : ('JavaError',                   'Java error'),
+    39   : ('ConverterError',              'Converter error'),
+    40   : ('MoveError',                   'Move error'),
+    41   : ('InvalidObject',               'Invalid object'),
+    42   : ('InvalidParm',                 'Invalid parm'),
+    43   : ('RequestNumberNotFound',       'Request number not found'),
+    44   : ('InvalidAsynchOption',         'Invalid asynchronous option'),
+    45   : ('RequestNotComplete',          'Request not complete'),
+    46   : ('ProcessAuthenticationDenied', 'Process authentication denied'),
+    47   : ('InvalidValue',                'Invalid value'),
+    48   : ('DoesNotExist',                'Does not exist'),
+    49   : ('AlreadyExists',               'Already exists'),
+    50   : ('DirectoryNotEmpty',           'Directory Not Empty'),
+    51   : ('DirectoryCopyError',          'Directory Copy Error'),
+    52   : ('DiagnosticsNotEnabled',       'Diagnostics Not Enabled'),
+    53   : ('HandleAuthenticationDenied',  'Handle Authentication Denied'),
+    54   : ('HandleAlreadyAuthenticated',  'Handle Already Authenticated'),
+    55   : ('InvalidSTAFVersion',          'Invalid STAF Version'),
+    56   : ('RequestCancelled',            'Request Cancelled'),
+    57   : ('CreateThreadError',           'Create Thread Error'),
+    58   : ('MaximumSizeExceeded',         'Maximum Size Exceeded'),
+    59   : ('MaximumHandlesExceeded',      'Maximum Handles Exceeded'),
+    60   : ('NotRequester',                'Not Pending Requester'),
+    4000 : ('UserDefined',                 'Service specific errors'),
+}
 
 class errors(object):
     '''
     Constants for STAF errors.
     '''
-    for (i, (name, description)) in enumerate(_return_codes):
-        locals()[name] = i
+    for (rc, (name, description)) in _return_codes.iteritems():
+        locals()[name] = rc
 
-    del i
+    del rc
     del name
     del description
 
@@ -89,7 +90,7 @@ def strerror(rc):
     '''
     try:
         return _return_codes[rc][1]
-    except IndexError:
+    except KeyError:
         return None
 
 class STAFError(Exception):
