@@ -13,9 +13,19 @@ from ._errors import STAFError
 class STAFUnmarshalError(STAFError):
     pass
 
-UNMARSHAL_RECURSIVE     = 'unmarshal-recursive'
-UNMARSHAL_NON_RECURSIVE = 'unmarshal-non-recursive'
-UNMARSHAL_NONE          = 'unmarshal-none'
+class NamedConstant(object):
+    '''
+    Simple class for singleton constants.
+    '''
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return '.'.join([self.__module__, self.name])
+
+UNMARSHAL_RECURSIVE = NamedConstant('UNMARSHAL_RECURSIVE')
+UNMARSHAL_NON_RECURSIVE = NamedConstant('UNMARSHAL_NON_RECURSIVE')
+UNMARSHAL_NONE = NamedConstant('UNMARSHAL_NONE')
 
 marker = '@SDT/'
 
