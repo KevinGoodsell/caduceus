@@ -1,20 +1,25 @@
-Python-STAF
+Caduceus - Python bindings for STAF
 
 Kevin Goodsell
-Sun, 15 Apr 2012 10:07:26 -0700
+Wed, 18 Apr 2012 08:30:31 -0700
 
 INTRODUCTION
 ------------
-python-staf is a Python interface for Software Test Automation Framework
+Caduceus is a Python interface for Software Test Automation Framework
 (STAF). It is an alternative to the PySTAF module that ships with STAF.
-Compared to PySTAF, python-staf is easier to use, presents a more
-Pythonic interface, supports modern Python constructs (e.g. context
-managers), and is written in pure Python using the ctypes foreign
-function interface.
+Compared to PySTAF, Caduceus is easier to use, presents a more Pythonic
+interface, supports modern Python constructs (e.g. context managers),
+and is written in pure Python using the ctypes foreign function
+interface.
+
+The name "Caduceus" is used for the project, but module that gets
+imported is simply "STAF". "Caduceus" refers to the staff carried by
+Hermes in Greek mythology, usually depicted with two snakes coiled
+around it. Staff and snakes, STAF and Python, get it?
 
 COMPARISON
 ----------
-python-staf has the following improvements over PySTAF:
+Caduceus has the following improvements over PySTAF:
 
 * Pure Python. No need to compile, one library works for all supported
   Python versions.
@@ -23,8 +28,8 @@ python-staf has the following improvements over PySTAF:
 * Errors are consistently signalled with exceptions. PySTAF sometimes
   uses exceptions, but usually requires checking one of the fields in
   the result to determine success or failure.
-* Exception classes are based on standard exception types, so you won't
-  get a nasty surprise if you use 'except Exception:'.
+* Exception classes are based on standard exception types, so they can
+  be caught with 'except Exception:'.
 * Exceptions include error codes and string representations of the error
   to make diagnosing errors easy.
 * Full support for Unicode.
@@ -38,28 +43,28 @@ However, the following disadvantages also apply:
 
 LICENSE
 -------
-python-staf is licensed under the Eclipse Public License version 1.0.
-See the COPYING file for the full license.
+Caduceus is licensed under the Eclipse Public License version 1.0. See
+the COPYING file for the full license.
 
 INSTALLATION
 ------------
-python-staf is a single Python package. Just make sure the STAF
-directory is in you Python path. One way to do this is to put it in the
+Caduceus is a single Python package. Just make sure the STAF directory
+is in you Python path. One way to do this is to put it in the
 site-packages directory of your Python installation.
 
 DOCUMENTATION
 -------------
-python-staf is documented in docstrings. Run this for the full
+Caduceus is documented in docstrings. Run this for the full
 documentation:
 
   pydoc STAF
 
-See also the STAF API documentation, which the python-staf docstrings
+See also the STAF API documentation, which the Caduceus docstrings
 reference.
 
 EXAMPLES
 --------
-The following example illustrates the basic usage of python-staf:
+The following example illustrates the basic usage of Caduceus:
 
   from pprint import pprint
   from traceback import print_exc
@@ -218,9 +223,9 @@ section by section:
   ** At the start, handle is <PySTAF.STAFHandle instance at 0xa02866c>
 
 The PySTAF reprs tend not to be very helpful. STAFHandle simply uses the
-default repr. In python-staf I've tried to include useful reprs. The
-Handle repr includes the handle number, and notes if it is static and if
-it is unregistered.
+default repr. In Caduceus I've tried to include useful reprs. The Handle
+repr includes the handle number, and notes if it is static and if it is
+unregistered.
 
   ** Ping test:
   PONG
@@ -312,8 +317,8 @@ Python 2.x). The underlying STAF API is not a UTF-8-supporting version.
 Because PySTAF unmarshals map class instances to plain dicts it is
 handled a bit more nicely by the pprint module. However, it loses the
 ordering of elements in the map class and includes the class name as an
-element of the dict. python-staf uses a dict-derived class that
-maintains item ordering and also includes an attribute for the map class
+element of the dict. Caduceus uses a dict-derived class that maintains
+item ordering and also includes an attribute for the map class
 definition, providing access to the map class name. The long and short
 display names for each key can also be accessed through methods on
 either the map class instance or the map class definition. Everything
@@ -327,7 +332,7 @@ The output here is the same, but constructing the command is
 significantly more problematic. STAF requires escaping for option values
 (it's not required in all cases, but probably always advisable). PySTAF
 supports this with the wrapData function, and you have to do it
-yourself. python-staf also has a wrap_data (using a more Pythonic name),
+yourself. Caduceus also has a wrap_data (using a more Pythonic name),
 but you shouldn't need it. Instead, you can identify which components of
 the command are values by breaking them into separate list elements. All
 odd-numbered list elements are automatically escaped. This is slightly
@@ -342,9 +347,9 @@ this automatically.
 PySTAF will give you error codes (which you must check manually), but
 translating those codes back to error messages is left as an exercise
 for the programmer. STAF's API unfortunately provides no way to look up
-error codes. python-staf takes care of this as well as it can by keeping
-a list of known error codes and the corresponding string representation
-of the error, and building exception objects that are about as useful as
+error codes. Caduceus takes care of this as well as it can by keeping a
+list of known error codes and the corresponding string representation of
+the error, and building exception objects that are about as useful as
 they can be.
 
   ** At the end, handle is <PySTAF.STAFHandle instance at 0xa02866c>
