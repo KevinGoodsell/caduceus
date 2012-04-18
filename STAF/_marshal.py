@@ -84,6 +84,10 @@ class MapClassDefinition(object):
         self.keys = []
         self._names = {} # {'key' : ('display name', 'short display name')}
 
+    def __repr__(self):
+        cls = self.__class__
+        return '<%s.%s %s>' % (cls.__module__, cls.__name__, self.name)
+
     def add_item(self, key, display_name, display_short_name=None):
         '''
         Add a key and a display name for it. Optionally include a short display
