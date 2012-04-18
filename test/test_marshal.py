@@ -15,7 +15,7 @@ from STAF import (
 class Unmarshal(unittest.TestCase):
 
     def testUnmarshalScalar(self):
-        self.assertIs(unmarshal('@SDT/$0:0:'), None)
+        self.assertTrue(unmarshal('@SDT/$0:0:') is None)
 
         self.assertEqual(unmarshal('@SDT/$S:0:'), '')
         self.assertEqual(unmarshal('@SDT/$S:3:foo'), 'foo')
@@ -161,7 +161,7 @@ class Unmarshal(unittest.TestCase):
             self.assertEqual(mc.display_short_name('color'), 'Color')
 
             self.assertEqual(mc.display_name('category'), 'Category')
-            self.assertIs(mc.display_short_name('category'), None)
+            self.assertTrue(mc.display_short_name('category') is None)
 
         for mc in unmarshaled[3:]:
             self.assertEqual(mc.display_name('fname'), 'First Name')
@@ -249,7 +249,7 @@ class Unmarshal(unittest.TestCase):
         for s in bad_strings:
             try:
                 self.assertRaises(STAFUnmarshalError, unmarshal_force, s)
-            except AssertionError as e:
+            except AssertionError, e:
                 # Hack the string info into the error.
                 e.args = ('STAFUnmarshalError not raised for %r' % s,)
                 raise

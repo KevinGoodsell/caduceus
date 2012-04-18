@@ -2,12 +2,21 @@
 #
 # This software is licensed under the Eclipse Public License (EPL) V1.0.
 
+from __future__ import with_statement
+
 import time
 import unittest
 
 import STAF
 
 class HandleTests(unittest.TestCase):
+
+    def assertSTAFResultError(self, rc, func, *args, **kwargs):
+        try:
+            func(*args, **kwargs)
+            self.fail('STAFResultError not raised')
+        except STAF.STAFResultError, exc:
+            self.assertEqual(exc.rc, rc)
 
     def testBasicHandle(self):
         with STAF.Handle('test handle') as h:
@@ -33,7 +42,7 @@ class HandleTests(unittest.TestCase):
             # Submit using a list
             result = h.submit('local', 'handle',
                               ['list handles name', 'test handle', 'long'])
-            self.assertIsInstance(result, list)
+            self.assertTrue(isinstance(result, list))
             self.assertEqual(len(result), 1)
             pieces = result[0]
             self.assertEqual(pieces['name'], 'test handle')
@@ -47,19 +56,16 @@ class HandleTests(unittest.TestCase):
     def testErrors(self):
         h = STAF.Handle('test handle')
 
-        with self.assertRaises(STAF.STAFResultError) as cm:
-            h.submit('local', 'doesntexist', 'do magic')
-        self.assertEqual(cm.exception.rc, STAF.errors.UnknownService)
+        self.assertSTAFResultError(STAF.errors.UnknownService,
+                h.submit, 'local', 'doesntexist', 'do magic')
 
-        with self.assertRaises(STAF.STAFResultError) as cm:
-            h.submit('local', 'ping', 'not a ping command')
-        self.assertEqual(cm.exception.rc, STAF.errors.InvalidRequestString)
+        self.assertSTAFResultError(STAF.errors.InvalidRequestString,
+                h.submit, 'local', 'ping', 'not a ping command')
 
         h.unregister()
 
-        with self.assertRaises(STAF.STAFResultError) as cm:
-            h.submit('local', 'ping', 'ping')
-        self.assertEqual(cm.exception.rc, STAF.errors.HandleDoesNotExist)
+        self.assertSTAFResultError(STAF.errors.HandleDoesNotExist,
+                h.submit, 'local', 'ping', 'ping')
 
         # Unregistering a second time should not produce an error.
         h.unregister()
@@ -97,14 +103,12 @@ class HandleTests(unittest.TestCase):
             time.sleep(2)
 
             # No queued result
-            with self.assertRaises(STAF.STAFResultError) as cm:
-                result = h.submit('local', 'queue', 'get type STAF/RequestComplete')
-            self.assertEqual(cm.exception.rc, STAF.errors.NoQueueElement)
+            self.assertSTAFResultError(STAF.errors.NoQueueElement,
+                    h.submit, 'local', 'queue', 'get type STAF/RequestComplete')
 
             # No retained result
-            with self.assertRaises(STAF.STAFResultError) as cm:
-                h.submit('local', 'service', ['free request', req])
-            self.assertEqual(cm.exception.rc, STAF.errors.RequestNumberNotFound)
+            self.assertSTAFResultError(STAF.errors.RequestNumberNotFound,
+                    h.submit, 'local', 'service', ['free request', req])
 
             # QUEUE
 
@@ -121,9 +125,8 @@ class HandleTests(unittest.TestCase):
             self.assertEqual(msg['result'], 'PONG')
 
             # No retained result
-            with self.assertRaises(STAF.STAFResultError) as cm:
-                h.submit('local', 'service', ['free request', req])
-            self.assertEqual(cm.exception.rc, STAF.errors.RequestNumberNotFound)
+            self.assertSTAFResultError(STAF.errors.RequestNumberNotFound,
+                    h.submit, 'local', 'service', ['free request', req])
 
             # RETAIN
 
@@ -133,9 +136,8 @@ class HandleTests(unittest.TestCase):
             time.sleep(2)
 
             # No queued result
-            with self.assertRaises(STAF.STAFResultError) as cm:
-                result = h.submit('local', 'queue', 'get type STAF/RequestComplete')
-            self.assertEqual(cm.exception.rc, STAF.errors.NoQueueElement)
+            self.assertSTAFResultError(STAF.errors.NoQueueElement,
+                    h.submit, 'local', 'queue', 'get type STAF/RequestComplete')
 
             # Check retained result
             result = h.submit('local', 'service', ['free request', req])
