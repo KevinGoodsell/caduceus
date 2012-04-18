@@ -167,8 +167,8 @@ class MapClass(dict):
     def items(self):
         return list(self.iteritems())
 
-    # The default dict repr is would be fine, but the order of the fields is
-    # kind of important for MapClass instances.
+    # The default dict repr would be fine, but the order of the fields is kind
+    # of important for MapClass instances.
     def __repr__(self):
         items = []
         for (k, v) in self.iteritems():
