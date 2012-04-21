@@ -32,10 +32,10 @@ class Handle(object):
 
     def __init__(self, name):
         '''
-        Create a Handle. If 'name' is a string, it provides the name of the
-        handle. Alternatively, 'name' can be an integer identifying a static
-        handle to use. Note that static handles don't get unregistered, even if
-        you call unregister().
+        Create a Handle. If 'name' is a string, it is used as the name for
+        registering the handle. If 'name' is an integer then it must be the
+        number of a previously registered static handle. Note that static
+        handles don't get unregistered, even if you call unregister().
         '''
         if isinstance(name, basestring):
             handle = _api.Handle_t()
@@ -52,11 +52,7 @@ class Handle(object):
                unmarshal=UNMARSHAL_RECURSIVE):
         '''
         Send a command to a STAF service. Arguments work mostly like the
-        Submit2UTF8 C API. Unmarshaling is done automatically unless otherwise
-        specified. 'request' can be a string like the C API, or it can be a
-        sequence. As a sequence of strings, the strings alternate between option
-        names and values. Multiple option names can be combined into a single
-        string. This avoids the need to escape or wrap values.
+        Submit2UTF8 C API. See the STAF package documentation for full details.
         '''
         from ._marshal import unmarshal as f_unmarshal
 
@@ -105,7 +101,9 @@ class Handle(object):
 
     def unregister(self):
         '''
-        Unregister the handle, if it's non-static.
+        Unregister the handle. For static handles this is a no-op. The error
+        HandleDoesNotExist is ignored, since this indicates that the handle
+        isn't registered, which is the requested state.
         '''
         if not self._static:
             try:
@@ -120,19 +118,20 @@ class Handle(object):
 
     def handle_num(self):
         '''
-        Return the handle number.
+        Returns the handle number.
         '''
         return self._handle
 
     def is_static(self):
         '''
-        Return a bool indicating whether this is a static handle.
+        Returns true if the handle is static, false otherwise.
         '''
         return self._static
 
     def is_registered(self):
         '''
-        Return a bool indicating whether this handle is currently registered.
+        Returns true if the handle is registered, false if it has been
+        unregistered.
         '''
         return self._registered
 
@@ -162,7 +161,7 @@ class Handle(object):
 def wrap_data(data):
     '''
     Make a colon-length-colon-prefixed string suitable for use as a single
-    service argument value in a submit() call.
+    service option value in a submit() call.
     '''
     # Note that the colon-length-colon-data format uses the length in
     # characters, not bytes.
@@ -181,13 +180,16 @@ def _string_translate(data, translator):
 
 def add_privacy_delimiters(data):
     '''
-    Python version of STAFAddPrivacyDelimiters.
+    Encloses the given string in privacy delimiters, identifying it as a section
+    that should be masked when displayed. E.g., for passwords.
     '''
     return _string_translate(data, _api.AddPrivacyDelimiters)
 
 def remove_privacy_delimiters(data, num_levels=0):
     '''
-    Python version of STAFRemovePrivacyDelimiters.
+    Removes privacy delimiters from the given string. By default this is done
+    repeatedly until no privacy delimiters remain. Alternatively, num_levels
+    gives the number of levels of delimiters to remove.
     '''
     def translator(instr, outstr):
         return _api.RemovePrivacyDelimiters(instr, num_levels, outstr)
@@ -196,12 +198,14 @@ def remove_privacy_delimiters(data, num_levels=0):
 
 def mask_private_data(data):
     '''
-    Python version of STAFMaskPrivateData.
+    Replaces private data in the given string with asterisks.
     '''
     return _string_translate(data, _api.MaskPrivateData)
 
 def escape_privacy_delimiters(data):
     '''
-    Python version of STAFEscapePrivacyDelimiters.
+    Escapes any privacy delimiters in the given string. This prevents them from
+    being interpreted as privacy delimiters when displayed by commands that hide
+    private data.
     '''
     return _string_translate(data, _api.EscapePrivacyDelimiters)
