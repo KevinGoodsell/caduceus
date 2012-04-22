@@ -6,7 +6,7 @@
 STAF error information.
 '''
 
-# Only for internal use
+# Only for internal use. This list can be regenerated using the mkerrors script.
 _return_codes = {
     0    : ('Ok',                          'No error'),
     1    : ('InvalidAPI',                  'Invalid API'),
@@ -29,12 +29,12 @@ _return_codes = {
     18   : ('FileReadError',               'File read error'),
     19   : ('FileWriteError',              'File write error'),
     20   : ('FileDeleteError',             'File delete error'),
-    21   : ('STAFNotRunning',              'STAF not running'),
+    21   : ('NotRunning',                  'STAF not running'),
     22   : ('CommunicationError',          'Communication error'),
     23   : ('TrusteeDoesNotExist',         'Trusteee does not exist'),
     24   : ('InvalidTrustLevel',           'Invalid trust level'),
     25   : ('AccessDenied',                'Insufficient trust level'),
-    26   : ('STAFRegistrationError',       'Registration error'),
+    26   : ('RegistrationError',           'Registration error'),
     27   : ('ServiceConfigurationError',   'Service configuration error'),
     28   : ('QueueFull',                   'Queue full'),
     29   : ('NoQueueElement',              'No queue element'),
