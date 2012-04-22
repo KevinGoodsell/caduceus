@@ -3,14 +3,14 @@
 # This software is licensed under the Eclipse Public License (EPL) V1.0.
 
 '''
-STAF data type marshaling.
+STAF data type marshalling.
 '''
 
 import re
 
 from ._errors import STAFError
 
-class STAFUnmarshalError(STAFError):
+class STAFUnmarshallError(STAFError):
     pass
 
 class NamedConstant(object):
@@ -23,51 +23,51 @@ class NamedConstant(object):
     def __repr__(self):
         return '.'.join([self.__module__, self.name])
 
-UNMARSHAL_RECURSIVE = NamedConstant('UNMARSHAL_RECURSIVE')
-UNMARSHAL_NON_RECURSIVE = NamedConstant('UNMARSHAL_NON_RECURSIVE')
-UNMARSHAL_NONE = NamedConstant('UNMARSHAL_NONE')
+UNMARSHALL_RECURSIVE = NamedConstant('UNMARSHALL_RECURSIVE')
+UNMARSHALL_NON_RECURSIVE = NamedConstant('UNMARSHALL_NON_RECURSIVE')
+UNMARSHALL_NONE = NamedConstant('UNMARSHALL_NONE')
 
 marker = '@SDT/'
 
-def unmarshal(data, mode=UNMARSHAL_RECURSIVE):
+def unmarshall(data, mode=UNMARSHALL_RECURSIVE):
     '''
-    Try to unmarshal the string in 'data'. 'mode' determines how unmarshaling
+    Try to unmarshall the string in 'data'. 'mode' determines how unmarshalling
     is done.
 
     'mode' can be one of the following:
 
-        UNMARSHAL_RECURSIVE (default) - Tries to recursively unmarshal any
+        UNMARSHALL_RECURSIVE (default) - Tries to recursively unmarshall any
         string result.
 
-        UNMARSHAL_NON_RECURSIVE - leaves string results as they are, doesn't
-        attept further unmarshaling.
+        UNMARSHALL_NON_RECURSIVE - leaves string results as they are, doesn't
+        attept further unmarshalling.
 
-        UNMARSHAL_NONE - doesn't do any unmarshaling.
+        UNMARSHALL_NONE - doesn't do any unmarshalling.
 
-    Returns 'data' if it doesn't appear to be a marshaled object, or if 'mode'
-    is UNMARSHAL_NONE.
+    Returns 'data' if it doesn't appear to be a marshalled object, or if 'mode'
+    is UNMARSHALL_NONE.
     '''
     try:
-        return unmarshal_force(data, mode)
-    except STAFUnmarshalError:
+        return unmarshall_force(data, mode)
+    except STAFUnmarshallError:
         return data
 
-def unmarshal_force(data, mode=UNMARSHAL_RECURSIVE):
+def unmarshall_force(data, mode=UNMARSHALL_RECURSIVE):
     '''
-    Same as unmarshal, but raises STAFUnmarshalError if unmarshaling isn't
+    Same as unmarshall, but raises STAFUnmarshallError if unmarshalling isn't
     possible.
     '''
-    if mode == UNMARSHAL_NONE:
+    if mode == UNMARSHALL_NONE:
         return data
 
-    (obj, remainder) = unmarshal_internal(data, mode)
+    (obj, remainder) = unmarshall_internal(data, mode)
 
     if remainder != '':
-        raise STAFUnmarshalError('unexpected trailing data')
+        raise STAFUnmarshallError('unexpected trailing data')
 
     return obj
 
-# Special classes for dealing with STAF Map Class types. Unmarshaled map
+# Special classes for dealing with STAF Map Class types. Unmarshalled map
 # classes will instances of MapClass, which is derived from dict and can be used
 # as a dict. It also provides display_name() and display_short_name() to access
 # those attributes if desired.
@@ -211,43 +211,43 @@ class MapClass(dict):
             raise NotImplementedError('viewvalues is not supported in MapClass')
 
 
-def unmarshal_internal(data, mode, context=None):
+def unmarshall_internal(data, mode, context=None):
     if context is None:
         context = {}
 
     if not data.startswith(marker):
-        raise STAFUnmarshalError('missing marshaled data marker')
+        raise STAFUnmarshallError('missing marshalled data marker')
 
     sym_index = len(marker)
     try:
         symbol = data[sym_index]
         rest = data[sym_index+1:]
     except IndexError:
-        raise STAFUnmarshalError('incomplete marshaled data')
+        raise STAFUnmarshallError('incomplete marshalled data')
 
-    unmarshaler = get_unmarshaler(symbol)
-    if unmarshaler is None:
-        raise STAFUnmarshalError('unrecognized data type indicator')
+    unmarshaller = get_unmarshaller(symbol)
+    if unmarshaller is None:
+        raise STAFUnmarshallError('unrecognized data type indicator')
 
-    return unmarshaler.unmarshal(rest, mode, context)
+    return unmarshaller.unmarshall(rest, mode, context)
 
-def get_unmarshaler(symbol):
+def get_unmarshaller(symbol):
     if symbol == '$':
-        return ScalarUnmarshaler
+        return ScalarUnmarshaller
     elif symbol == '{':
-        return MapUnmarshaler
+        return MapUnmarshaller
     elif symbol == '[':
-        return ListUnmarshaler
+        return ListUnmarshaller
     elif symbol == '%':
-        return MapClassUnmarshaler
+        return MapClassUnmarshaller
     elif symbol == '*':
-        return ContextUnmarshaler
+        return ContextUnmarshaller
     else:
         return None
 
-class Unmarshaler(object):
+class Unmarshaller(object):
     '''
-    Base class for all unmarshalers.
+    Base class for all unmarshallers.
     '''
     clc_matcher = re.compile(
         r'''^
@@ -256,7 +256,7 @@ class Unmarshaler(object):
         $''', re.VERBOSE | re.DOTALL)
 
     @classmethod
-    def unmarshal(cls, data, mode, context):
+    def unmarshall(cls, data, mode, context):
         raise NotImplementedError()
 
     @classmethod
@@ -265,71 +265,72 @@ class Unmarshaler(object):
         Read a colon-length-colon denoted object from data. That is, a colon,
         integer length, colon, and finally a sequence of characters of the given
         length. Returns a tuple of the object and everything that's left in
-        data. Raises STAFUnmarshalError if the format is not as expected.
+        data. Raises STAFUnmarshallError if the format is not as expected.
         '''
         m = cls.clc_matcher.match(data)
         if m is None:
-            raise STAFUnmarshalError('bad format for colon-length-colon object')
+            raise STAFUnmarshallError('bad format for colon-length-colon '
+                                      'object')
 
         (length, rest) = m.group('len', 'rest')
         length = int(length)
 
         if length > len(rest):
-            raise STAFUnmarshalError('specified length exceeds available data')
+            raise STAFUnmarshallError('specified length exceeds available data')
 
         obj = rest[:length]
         rest = rest[length:]
 
         return (obj, rest)
 
-class ScalarUnmarshaler(Unmarshaler):
+class ScalarUnmarshaller(Unmarshaller):
     @classmethod
-    def unmarshal(cls, data, mode, context):
+    def unmarshall(cls, data, mode, context):
         if not data.startswith('0') and not data.startswith('S'):
-            raise STAFUnmarshalError('bad format for scalar object')
+            raise STAFUnmarshallError('bad format for scalar object')
 
         typ = data[0]
         (obj, rest) = cls.read_clc_obj(data[1:])
 
         if typ == '0':
             if obj != '':
-                raise STAFUnmarshalError('bad format for none object')
+                raise STAFUnmarshallError('bad format for none object')
             return (None, rest)
 
         else: # typ == 'S'
-            # Possibly do recursive unmarshaling.
-            if mode == UNMARSHAL_RECURSIVE:
-                obj = unmarshal(obj, mode)
+            # Possibly do recursive unmarshalling.
+            if mode == UNMARSHALL_RECURSIVE:
+                obj = unmarshall(obj, mode)
 
             return (obj, rest)
 
 
-class MapUnmarshaler(Unmarshaler):
+class MapUnmarshaller(Unmarshaller):
     @classmethod
-    def unmarshal(cls, data, mode, context):
+    def unmarshall(cls, data, mode, context):
         (items, remainder) = cls.read_clc_obj(data)
 
         result = {}
 
         while items:
             (key, items) = cls.read_clc_obj(items)
-            (val, items) = unmarshal_internal(items, mode, context)
+            (val, items) = unmarshall_internal(items, mode, context)
 
             result[key] = val
 
         return (result, remainder)
 
-class ListUnmarshaler(Unmarshaler):
+class ListUnmarshaller(Unmarshaller):
     count_matcher = re.compile(r'''^
         (?P<count>\d+)  # Number of elements
         (?P<rest>.*)    # List items
         $''', re.VERBOSE | re.DOTALL)
 
     @classmethod
-    def unmarshal(cls, data, mode, context):
+    def unmarshall(cls, data, mode, context):
         m = cls.count_matcher.match(data)
         if m is None:
-            raise STAFUnmarshalError('bad format for list object')
+            raise STAFUnmarshallError('bad format for list object')
 
         (count, rest) = m.group('count', 'rest')
         count = int(count)
@@ -338,41 +339,41 @@ class ListUnmarshaler(Unmarshaler):
 
         result = []
         for i in range(count):
-            (obj, items) = unmarshal_internal(items, mode, context)
+            (obj, items) = unmarshall_internal(items, mode, context)
             result.append(obj)
 
         if items != '':
-            raise STAFUnmarshalError('unexpected trailing data')
+            raise STAFUnmarshallError('unexpected trailing data')
 
         return (result, remainder)
 
-class MapClassUnmarshaler(Unmarshaler):
+class MapClassUnmarshaller(Unmarshaller):
     @classmethod
-    def unmarshal(cls, data, mode, context):
+    def unmarshall(cls, data, mode, context):
         (content, remainder) = cls.read_clc_obj(data)
         (class_name, values) = cls.read_clc_obj(content)
 
         class_def = context.get(class_name)
         if class_def is None:
-            raise STAFUnmarshalError('missing map class definition for %r' %
-                                     class_name)
+            raise STAFUnmarshallError('missing map class definition for %r' %
+                                      class_name)
 
         result = MapClass(class_def)
         # The ordering and names of the keys are given by class_def.keys.
         for key in class_def.keys:
-            (value, values) = unmarshal_internal(values, mode, context)
+            (value, values) = unmarshall_internal(values, mode, context)
             result[key] = value
 
         if values != '':
-            raise STAFUnmarshalError('unexpected trailing data')
+            raise STAFUnmarshallError('unexpected trailing data')
 
         return (result, remainder)
 
-class ContextUnmarshaler(Unmarshaler):
+class ContextUnmarshaller(Unmarshaller):
     @classmethod
-    def unmarshal(cls, data, mode, context):
+    def unmarshall(cls, data, mode, context):
         (content, remainder) = cls.read_clc_obj(data)
-        (context_map, root_data) = unmarshal_internal(content, mode, context)
+        (context_map, root_data) = unmarshall_internal(content, mode, context)
 
         class_map = context_map.get('map-class-map', {})
 
@@ -390,9 +391,9 @@ class ContextUnmarshaler(Unmarshaler):
         # favor of new_context. Nested contexts probably shouldn't happen, but
         # if they do this means the objects in the inner context won't be able
         # to reference objects in the outer context. This is probably fine.
-        (root_obj, trailing) = unmarshal_internal(root_data, mode, new_context)
+        (root_obj, trailing) = unmarshall_internal(root_data, mode, new_context)
 
         if trailing != '':
-            raise STAFUnmarshalError('unexpected trailing data')
+            raise STAFUnmarshallError('unexpected trailing data')
 
         return (root_obj, remainder)

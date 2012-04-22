@@ -10,7 +10,7 @@ General Notes
 * Most string results are unicode objects, because the underlying STAF APIs
   being used are UTF-8 versions when available. unicode objects are also
   accepted as parameters.
-* Unmarshaled objects are common Python types -- lists, strings (actually
+* Unmarshalled objects are common Python types -- lists, strings (actually
   unicode objects), and dicts. Which type is returned depends on the request.
   MapClass instances are specialized dicts which are returned for some requests.
 
@@ -30,7 +30,7 @@ unregistered automatically:
 The most important part of the Handle class is the submit() method, described in
 detail below.
 
-Handle.submit(where, service, request[, sync_option[, unmarshal]])
+Handle.submit(where, service, request[, sync_option[, unmarshall]])
 
     submit() submits a request to STAF.
 
@@ -84,21 +84,21 @@ Handle.submit(where, service, request[, sync_option[, unmarshal]])
             immediately. The final result is stored with the SERVICE service and
             placed in the submitter's queue.
 
-    'unmarshal' determines what unmarshaling is done to the result. The allowed
-    values are:
+    'unmarshall' determines what unmarshalling is done to the result. The
+    allowed values are:
 
-        STAF.UNMARSHAL_RECURSIVE
-            (default) The result is fully unmarshaled. Marshaled strings in the
-            results are unmarshaled recursively. This is similar to using
+        STAF.UNMARSHALL_RECURSIVE
+            (default) The result is fully unmarshalled. Marshalled strings in
+            the results are unmarshalled recursively. This is similar to using
             kSTAFUnmarshallingDefaults in the STAF C API.
 
-        STAF.UNMARSHAL_NON_RECURSIVE
-            The result is unmarshaled, but strings in the result are not
-            unmarshaled. This is similar to using kSTAFIgnoreIndirectObjects in
+        STAF.UNMARSHALL_NON_RECURSIVE
+            The result is unmarshalled, but strings in the result are not
+            unmarshalled. This is similar to using kSTAFIgnoreIndirectObjects in
             the STAF C API.
 
-        STAF.UNMARSHAL_NONE
-            No unmarshaling is done. The result is returned as a string.
+        STAF.UNMARSHALL_NONE
+            No unmarshalling is done. The result is returned as a string.
 
 Errors and Exceptions
 ---------------------
@@ -125,12 +125,12 @@ class STAFResultError(STAFError)
             or None. Typically this is the result from a failed submit() call,
             if there was a result.
 
-class STAFUnmarshalError(STAFError)
+class STAFUnmarshallError(STAFError)
 
-    Exception raised when unmarshaling fails. Note that typically you won't see
-    this, since by default unmarshaling is attempted and the original string is
-    returned if unmarshaling fails. The exception is unmarshal_force, which will
-    raise this if unmarshaling isn't possible.
+    Exception raised when unmarshalling fails. Note that typically you won't see
+    this, since by default unmarshalling is attempted and the original string is
+    returned if unmarshalling fails. The exception is unmarshall_force, which
+    will raise this if unmarshalling isn't possible.
 
 class errors(object)
 
@@ -146,32 +146,32 @@ def strerror(rc)
 
     Returns a string describing the given error code.
 
-Unmarshaling
-------------
-Two functions are available for doing unmarshaling:
+Unmarshalling
+-------------
+Two functions are available for doing unmarshalling:
 
-    def unmarshal(data[, mode])
-    def unmarshal_force(data[, mode])
+    def unmarshall(data[, mode])
+    def unmarshall_force(data[, mode])
 
-Note: Unmarshaling usually happens automatically in the Handle.submit() call, so
-the unmarshal() and unmarshal_force() functions aren't needed most of the time.
-Unmarshaling can be skipped in the Handle.submit() call by passing
-mode=STAF.UNMARSHAL_NONE.
+Note: Unmarshalling usually happens automatically in the Handle.submit() call,
+so the unmarshall() and unmarshall_force() functions aren't needed most of the
+time. Unmarshalling can be skipped in the Handle.submit() call by passing
+mode=STAF.UNMARSHALL_NONE.
 
-unmarshal() and unmarshal_force() differ in how they deal with errors.
-unmarshal() assumes that the string it is given may or may not actually be
-marshaled data, so any unmarshaling error is taken to mean that the string is
-just a plain string, and it is returned as-is. unmarshal_force() assumes that
-the string is marshaled data and raises STAFUnmarshalError if it cannot be
-unmarshaled.
+unmarshall() and unmarshall_force() differ in how they deal with errors.
+unmarshall() assumes that the string it is given may or may not actually be
+marshalled data, so any unmarshalling error is taken to mean that the string is
+just a plain string, and it is returned as-is. unmarshall_force() assumes that
+the string is marshalled data and raises STAFUnmarshallError if it cannot be
+unmarshalled.
 
-The optional 'mode' argument has the same meaning as the 'unmarshal' argument
-for Handle.submit(). Using STAF.UNMARSHAL_NONE makes both of these functions
+The optional 'mode' argument has the same meaning as the 'unmarshall' argument
+for Handle.submit(). Using STAF.UNMARSHALL_NONE makes both of these functions
 no-ops, but is still supported for consistency with Handle.submit().
 
-STAF has six data types that can appear in marshaled strings. This data types
-and the corresponding Python type used to represent the unmarshaled forms are as
-follows:
+STAF has six data types that can appear in marshalled strings. This data types
+and the corresponding Python type used to represent the unmarshalled forms are
+as follows:
 
      STAF Type           | Python Type
     --------------------------------------
@@ -183,7 +183,7 @@ follows:
      Marshalling Context | (not used)
 
 The first four are straight-forward. String results have the same type as the
-original marshaled data string.
+original marshalled data string.
 
 A Map Class is basically a Map with an associated Map Class Definition. The Map
 Class Definition includes extra information that is typically only relevant for
@@ -198,15 +198,15 @@ restrictions, however. See the full description of STAF.MapClass below.
 
 A Marshalling Context is just a collection of Map Class Definitions and a "root
 object" that may use those definitions. The root object is the interesting part,
-and when a Marshalling Context is unmarshaled, this is the only part that is
-returned. Thus, when unmarshaling is performed on a marshaled Marshalling
+and when a Marshalling Context is unmarshalled, this is the only part that is
+returned. Thus, when unmarshalling is performed on a marshalled Marshalling
 Context, the result will be one of the other types. Any Map Class Definitions
 are always accessible through the 'definition' attribute of a corresponding
 STAF.MapClass instance.
 
 class MapClass(dict)
 
-    Class used to represent unmarshaled Map Class objects. Functions like a
+    Class used to represent unmarshalled Map Class objects. Functions like a
     normal dict, but has a few additional attributes and restrictions, and some
     slightly modified behaviors.
 
@@ -302,9 +302,9 @@ __all__ = [
     'REQ_QUEUE_RETAIN', 'Handle', 'wrap_data', 'add_privacy_delimiters',
     'remove_privacy_delimiters', 'mask_private_data',
     'escape_privacy_delimiters', 'errors', 'strerror', 'STAFError',
-    'STAFResultError', 'unmarshal', 'unmarshal_force', 'STAFUnmarshalError',
-    'MapClassDefinition', 'MapClass', 'UNMARSHAL_RECURSIVE',
-    'UNMARSHAL_NON_RECURSIVE', 'UNMARSHAL_NONE',
+    'STAFResultError', 'unmarshall', 'unmarshall_force', 'STAFUnmarshallError',
+    'MapClassDefinition', 'MapClass', 'UNMARSHALL_RECURSIVE',
+    'UNMARSHALL_NON_RECURSIVE', 'UNMARSHALL_NONE',
 ]
 
 from ._staf import (
@@ -328,15 +328,15 @@ from ._errors import (
     STAFResultError,
 )
 
-from ._marshal import (
-    unmarshal,
-    unmarshal_force,
-    STAFUnmarshalError,
+from ._marshall import (
+    unmarshall,
+    unmarshall_force,
+    STAFUnmarshallError,
     MapClassDefinition,
     MapClass,
-    UNMARSHAL_RECURSIVE,
-    UNMARSHAL_NON_RECURSIVE,
-    UNMARSHAL_NONE,
+    UNMARSHALL_RECURSIVE,
+    UNMARSHALL_NON_RECURSIVE,
+    UNMARSHALL_NONE,
 )
 
 # Clean up names. This gives 'STAF.Handle' istead of 'STAF._staf.Handle'

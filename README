@@ -314,7 +314,7 @@ Python 2.x). The underlying STAF API is not a UTF-8-supporting version.
     'name': 'VAR',
     'staf-map-class-name': 'STAF/Service/Service/ServiceInfo'}]
 
-Because PySTAF unmarshals map class instances to plain dicts it is
+Because PySTAF unmarshalls map class instances to plain dicts it is
 handled a bit more nicely by the pprint module. However, it loses the
 ordering of elements in the map class and includes the class name as an
 element of the dict. Caduceus uses a dict-derived class that maintains

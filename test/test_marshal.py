@@ -5,40 +5,40 @@
 import unittest
 
 from STAF import (
-    unmarshal,
-    unmarshal_force,
-    STAFUnmarshalError,
-    UNMARSHAL_NON_RECURSIVE,
-    UNMARSHAL_NONE,
+    unmarshall,
+    unmarshall_force,
+    STAFUnmarshallError,
+    UNMARSHALL_NON_RECURSIVE,
+    UNMARSHALL_NONE,
 )
 
-class Unmarshal(unittest.TestCase):
+class Unmarshall(unittest.TestCase):
 
-    def testUnmarshalScalar(self):
-        self.assertTrue(unmarshal('@SDT/$0:0:') is None)
+    def testUnmarshallScalar(self):
+        self.assertTrue(unmarshall('@SDT/$0:0:') is None)
 
-        self.assertEqual(unmarshal('@SDT/$S:0:'), '')
-        self.assertEqual(unmarshal('@SDT/$S:3:foo'), 'foo')
-        self.assertEqual(unmarshal('@SDT/$S:10:   \tab\n   '), '   \tab\n   ')
+        self.assertEqual(unmarshall('@SDT/$S:0:'), '')
+        self.assertEqual(unmarshall('@SDT/$S:3:foo'), 'foo')
+        self.assertEqual(unmarshall('@SDT/$S:10:   \tab\n   '), '   \tab\n   ')
 
-    def testUnmarshalMap(self):
-        self.assertEqual(unmarshal('@SDT/{:0:'), {})
-        self.assertEqual(unmarshal('@SDT/{:13::0:@SDT/$0:0:'), {'': None})
-        self.assertEqual(unmarshal('@SDT/{:53:'
-                                   ':8:some key@SDT/$0:0:'
-                                   ':7:another@SDT/$S:11:foo bar baz'),
+    def testUnmarshallMap(self):
+        self.assertEqual(unmarshall('@SDT/{:0:'), {})
+        self.assertEqual(unmarshall('@SDT/{:13::0:@SDT/$0:0:'), {'': None})
+        self.assertEqual(unmarshall('@SDT/{:53:'
+                                    ':8:some key@SDT/$0:0:'
+                                    ':7:another@SDT/$S:11:foo bar baz'),
                          {'some key': None, 'another': 'foo bar baz'})
 
     def testUnmarshalList(self):
-        self.assertEqual(unmarshal('@SDT/[0:0:'), [])
-        self.assertEqual(unmarshal('@SDT/[4:42:'
-                                   '@SDT/[0:0:'
-                                   '@SDT/$0:0:'
-                                   '@SDT/$S:3:foo'
-                                   '@SDT/{:0:'),
+        self.assertEqual(unmarshall('@SDT/[0:0:'), [])
+        self.assertEqual(unmarshall('@SDT/[4:42:'
+                                    '@SDT/[0:0:'
+                                    '@SDT/$0:0:'
+                                    '@SDT/$S:3:foo'
+                                    '@SDT/{:0:'),
                          [[], None, 'foo', {}])
 
-    def testUnmarshalMapClass(self):
+    def testUnmarshallMapClass(self):
         data = (
             '@SDT/*:1306:'
             '@SDT/{:743::13:map-class-map'
@@ -136,10 +136,10 @@ class Unmarshal(unittest.TestCase):
                     '@SDT/$S:1:5'
         )
 
-        unmarshaled = unmarshal(data)
+        unmarshalled = unmarshall(data)
 
         self.assertEqual(
-            unmarshaled,
+            unmarshalled,
             [
                 {'name': 'Apple', 'color': 'Red', 'category': 'Fruit'},
                 {'name': 'Carrot', 'color': 'Orange', 'category': 'Vegetable'},
@@ -153,7 +153,7 @@ class Unmarshal(unittest.TestCase):
             ]
         )
 
-        for mc in unmarshaled[:3]:
+        for mc in unmarshalled[:3]:
             self.assertEqual(mc.display_name('name'), 'Item Name')
             self.assertEqual(mc.display_short_name('name'), 'Name')
 
@@ -163,7 +163,7 @@ class Unmarshal(unittest.TestCase):
             self.assertEqual(mc.display_name('category'), 'Category')
             self.assertTrue(mc.display_short_name('category') is None)
 
-        for mc in unmarshaled[3:]:
+        for mc in unmarshalled[3:]:
             self.assertEqual(mc.display_name('fname'), 'First Name')
             self.assertEqual(mc.display_short_name('fname'), 'First')
 
@@ -173,7 +173,7 @@ class Unmarshal(unittest.TestCase):
             self.assertEqual(mc.display_name('number'), 'Number')
             self.assertEqual(mc.display_short_name('number'), 'Number')
 
-    def testNoUnmarshal(self):
+    def testNoUnmarshall(self):
         no_tag = [
             '',
             'foo',
@@ -188,13 +188,13 @@ class Unmarshal(unittest.TestCase):
             '@SDT/[1:15:@SDT/$S:5:Hello'
         ]
 
-        # Data without a tag should never be unmarshaled:
+        # Data without a tag should never be unmarshalled:
         for test in no_tag:
-            self.assertEqual(unmarshal(test), test)
+            self.assertEqual(unmarshall(test), test)
 
-        # Nothing should be unmarshaled with UnmarshalNone:
+        # Nothing should be unmarshalled with UnmarshallNone:
         for test in no_tag + tag:
-            self.assertEqual(unmarshal(test, UNMARSHAL_NONE), test)
+            self.assertEqual(unmarshall(test, UNMARSHALL_NONE), test)
 
     def testInvalidData(self):
         bad_strings = [
@@ -248,21 +248,22 @@ class Unmarshal(unittest.TestCase):
 
         for s in bad_strings:
             try:
-                self.assertRaises(STAFUnmarshalError, unmarshal_force, s)
+                self.assertRaises(STAFUnmarshallError, unmarshall_force, s)
             except AssertionError, e:
                 # Hack the string info into the error.
-                e.args = ('STAFUnmarshalError not raised for %r' % s,)
+                e.args = ('STAFUnmarshallError not raised for %r' % s,)
                 raise
 
     def testRecursion(self):
         s = '@SDT/$S:24:@SDT/$S:13:@SDT/$S:3:foo'
-        self.assertEqual(unmarshal(s), 'foo')
-        self.assertEqual(unmarshal(s, UNMARSHAL_NON_RECURSIVE),
+        self.assertEqual(unmarshall(s), 'foo')
+        self.assertEqual(unmarshall(s, UNMARSHALL_NON_RECURSIVE),
                          '@SDT/$S:13:@SDT/$S:3:foo')
 
         s = '@SDT/[1:21:@SDT/$S:10:@SDT/[0:0:'
-        self.assertEqual(unmarshal(s), [[]])
-        self.assertEqual(unmarshal(s, UNMARSHAL_NON_RECURSIVE), ['@SDT/[0:0:'])
+        self.assertEqual(unmarshall(s), [[]])
+        self.assertEqual(unmarshall(s, UNMARSHALL_NON_RECURSIVE),
+                         ['@SDT/[0:0:'])
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)

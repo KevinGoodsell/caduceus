@@ -11,7 +11,7 @@ import ctypes
 
 from . import _api
 from ._errors import errors, strerror, STAFResultError
-from ._marshal import UNMARSHAL_RECURSIVE
+from ._marshall import UNMARSHALL_RECURSIVE
 
 # Submit modes (from STAF.h, STAFSyncOption_e)
 REQ_SYNC            = 0
@@ -49,12 +49,12 @@ class Handle(object):
         self._registered = True
 
     def submit(self, where, service, request, sync_option=REQ_SYNC,
-               unmarshal=UNMARSHAL_RECURSIVE):
+               unmarshall=UNMARSHALL_RECURSIVE):
         '''
         Send a command to a STAF service. Arguments work mostly like the
         Submit2UTF8 C API. See the STAF package documentation for full details.
         '''
-        from ._marshal import unmarshal as f_unmarshal
+        from ._marshall import unmarshall as f_unmarshall
 
         request = self._build_request(request).encode('utf-8')
         result_ptr = ctypes.POINTER(ctypes.c_char)()
@@ -73,7 +73,7 @@ class Handle(object):
             if rc != 0:
                 raise STAFResultError(rc, strerror(rc), result or None)
 
-            return f_unmarshal(result, unmarshal)
+            return f_unmarshall(result, unmarshall)
 
         finally:
             # Need to free result_ptr even when rc indicates an error.
