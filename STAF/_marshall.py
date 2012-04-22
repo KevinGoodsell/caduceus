@@ -68,9 +68,9 @@ def unmarshall_force(data, mode=UNMARSHALL_RECURSIVE):
     return obj
 
 # Special classes for dealing with STAF Map Class types. Unmarshalled map
-# classes will instances of MapClass, which is derived from dict and can be used
-# as a dict. It also provides display_name() and display_short_name() to access
-# those attributes if desired.
+# classes will be instances of MapClass, which is derived from dict and can be
+# used as a dict. It also provides display_name() and display_short_name() to
+# access those attributes if desired.
 
 class MapClassDefinition(object):
     '''
@@ -125,10 +125,13 @@ class MapClass(dict):
     unexpected behavior.
     '''
 
-    def __init__(self, definition, *args, **kwargs):
-        super(MapClass, self).__init__(*args, **kwargs)
+    def __init__(self, definition):
+        super(MapClass, self).__init__()
 
         self.definition = definition
+
+        for key in self.definition.keys:
+            self[key] = None
 
     def display_name(self, key):
         '''
@@ -141,6 +144,45 @@ class MapClass(dict):
         Returns the short form of the display name for 'key'.
         '''
         return self.definition.display_short_name(key)
+
+    # Overrides to keep keys consistent with definition.
+
+    def __setitem__(self, key, value):
+        # TODO: Don't do linear search
+        if key in self.definition.keys:
+            super(MapClass, self).__setitem__(key, value)
+        else:
+            raise KeyError('key %r is not in the MapClassDefinition' % key)
+
+    def __delitem__(self, key):
+        'Not supported, raises NotImplementedError.'
+        raise NotImplementedError('item deletion is not supported in MapClass')
+
+    def clear(self):
+        'Not supported, raises NotImplementedError.'
+        raise NotImplementedError('clear() is not supported in MapClass')
+
+    def pop(self, key, default=None):
+        'Not supported, raises NotImplementedError.'
+        raise NotImplementedError('pop() is not supported in MapClass')
+
+    def popitem(self):
+        'Not supported, raises NotImplementedError.'
+        raise NotImplementedError('popitem() is not supported in MapClass')
+
+    def setdefault(key, default=None):
+        if key in self:
+            return super(MapClass, self).setdefault(key, default)
+        else:
+            raise KeyError('key %r is not in the MapClassDefinition' % key)
+
+    def update(self, *args, **kwargs):
+        as_dict = dict(*args, **kwargs)
+        for key in as_dict.iterkeys():
+            if key not in self:
+                raise KeyError('key %r is not in the MapClassDefinition' % key)
+
+        self.update(as_dict)
 
     # Overrides to preserve ordering on item access.
 
@@ -176,6 +218,9 @@ class MapClass(dict):
 
         return '{%s}' % ', '.join(items)
 
+    add_docstring(__setitem__)
+    add_docstring(setdefault)
+    add_docstring(update)
     add_docstring(__iter__)
     add_docstring(iterkeys)
     add_docstring(keys)
@@ -184,31 +229,6 @@ class MapClass(dict):
     add_docstring(iteritems)
     add_docstring(items)
     add_docstring(__repr__)
-
-    # NOTE: Python 2.7 adds viewitems(), viewkeys(), and viewvalues(). These
-    # aren't supported here because it would be tricky to make them work and
-    # they aren't really useful in MapClasses that aren't expected to have items
-    # added/removed. Because the inherited versions from dict won't work as
-    # expected, disable them.
-
-    if hasattr(dict, 'viewitems'):
-        def viewitems(self):
-            '''
-            Unsupported method, raises NotImplementedError.
-            '''
-            raise NotImplementedError('viewitems is not supported in MapClass')
-
-        def viewkeys(self):
-            '''
-            Unsupported method, raises NotImplementedError.
-            '''
-            raise NotImplementedError('viewkeys is not supported in MapClass')
-
-        def viewvalues(self):
-            '''
-            Unsupported method, raises NotImplementedError.
-            '''
-            raise NotImplementedError('viewvalues is not supported in MapClass')
 
 
 def unmarshall_internal(data, mode, context=None):
