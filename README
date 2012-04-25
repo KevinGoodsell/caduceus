@@ -318,17 +318,15 @@ Because PySTAF unmarshalls map class instances to plain dicts it is
 handled a bit more nicely by the pprint module. However, it loses the
 ordering of elements in the map class and includes the class name as an
 element of the dict. Caduceus uses a dict-derived class that maintains
-item ordering and also includes an attribute for the map class
-definition, providing access to the map class name. The long and short
-display names for each key can also be accessed through methods on
-either the map class instance or the map class definition. Everything
-you might need is available, but stays out of the way if you don't want
-it.
+item ordering and also includes an attribute for the map class name. The
+long and short display names for each key can also be accessed through
+methods. Everything you might need is available, but stays out of the
+way if you don't want it.
 
   ** Complicated command:
   {'staf-map-class-name': 'STAF/Service/Process/CompletionInfo', 'fileList': [{'staf-map-class-name': 'STAF/Service/Process/ReturnFileInfo', 'data': '/etc 4096 8 41ed 0 0 15 17 78 0 0 1333845226 1334022349 1334022349 0 4096\n', 'rc': '0'}], 'key': None, 'rc': '0'}
 
-The output here is the same, but constructing the command is
+The output here is similar, but constructing the command is
 significantly more problematic. STAF requires escaping for option values
 (it's not required in all cases, but probably always advisable). PySTAF
 supports this with the wrapData function, and you have to do it

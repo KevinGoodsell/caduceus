@@ -75,8 +75,7 @@ def unmarshall_force(data, mode=UNMARSHALL_RECURSIVE):
 class MapClassDefinition(object):
     '''
     Represents a map class definition, which provides the set of key names and
-    long and short display names for the map. This is accessible as the
-    'definition' field on a MapClass instance.
+    long and short display names for the keys.
     '''
 
     def __init__(self, name):
@@ -104,9 +103,16 @@ class MapClassDefinition(object):
 
     def display_short_name(self, key):
         '''
-        Returns the short form of the display name for 'key'.
+        Returns the short form of the display name for 'key', or None if no
+        short name is defined.
         '''
         return self._names[key][1]
+
+    def map_class(self):
+        '''
+        Return a MapClass instance based on this definition.
+        '''
+        return MapClass(self.name, self.keys, self._names)
 
 def add_docstring(method):
     '''
@@ -121,38 +127,60 @@ class MapClass(dict):
     way. It also has 'display_name' and 'display_short_name' methods for getting
     the display names for a key.
 
-    Removing items from a MapClass isn't supported, and will probably cause
-    unexpected behavior.
+    Adding and removing keys are not supported.
     '''
 
-    def __init__(self, definition):
+    def __init__(self, class_name, keys, disp_names):
+        '''
+        Create a new MapClass. 'class_name' gives the Map Class name, 'keys'
+        is a sequence giving the keys in the Map and their ordering, and
+        disp_names is a dict mapping key names to (display_name,
+        display_short_name) tuples, where display_short_name may be None.
+
+        This should generally not be used directly. Instead, create a
+        MapClassDefinition, populate it with keys, then use its map_class method
+        to create MapClass instances.
+        '''
         super(MapClass, self).__init__()
 
-        self.definition = definition
+        self.class_name = class_name
+        self._keys = list(keys)
+        self._names = dict(disp_names)
 
-        for key in self.definition.keys:
+        for key in self._keys:
             self[key] = None
 
     def display_name(self, key):
         '''
         Returns the display name for 'key'.
         '''
-        return self.definition.display_name(key)
+        return self._names[key][0]
 
     def display_short_name(self, key):
         '''
-        Returns the short form of the display name for 'key'.
+        Returns the short form of the display name for 'key', or None if no
+        short name is defined.
         '''
-        return self.definition.display_short_name(key)
+        return self._names[key][1]
 
-    # Overrides to keep keys consistent with definition.
+    def definition(self):
+        '''
+        Return a new MapClassDefinition using the structure of this MapClass.
+        '''
+        definition = MapClassDefinition(self.class_name)
+        for key in self._keys:
+            (disp_name, disp_short) = self._names[key]
+            definition.add_item(key, disp_name, disp_short)
+
+        return definition
+
+    # Overrides to prevent adding/removing keys.
 
     def __setitem__(self, key, value):
-        # TODO: Don't do linear search
-        if key in self.definition.keys:
+        if key in self._names:
             super(MapClass, self).__setitem__(key, value)
         else:
-            raise KeyError('key %r is not in the MapClassDefinition' % key)
+            raise KeyError(key)
 
     def __delitem__(self, key):
         'Not supported, raises NotImplementedError.'
@@ -174,36 +202,36 @@ class MapClass(dict):
         if key in self:
             return super(MapClass, self).setdefault(key, default)
         else:
-            raise KeyError('key %r is not in the MapClassDefinition' % key)
+            raise KeyError(key)
 
     def update(self, *args, **kwargs):
         as_dict = dict(*args, **kwargs)
         for key in as_dict.iterkeys():
             if key not in self:
-                raise KeyError('key %r is not in the MapClassDefinition' % key)
+                raise KeyError(key)
 
         self.update(as_dict)
 
     # Overrides to preserve ordering on item access.
 
     def __iter__(self):
-        return iter(self.definition.keys)
+        return iter(self._keys)
 
     def iterkeys(self):
-        return iter(self.definition.keys)
+        return iter(self._keys)
 
     def keys(self):
         return list(self.iterkeys())
 
     def itervalues(self):
-        for key in self.definition.keys:
+        for key in self._keys:
             yield self[key]
 
     def values(self):
         return list(self.itervalues())
 
     def iteritems(self):
-        for key in self.definition.keys:
+        for key in self._keys:
             yield (key, self[key])
 
     def items(self):
@@ -378,7 +406,7 @@ class MapClassUnmarshaller(Unmarshaller):
             raise STAFUnmarshallError('missing map class definition for %r' %
                                       class_name)
 
-        result = MapClass(class_def)
+        result = class_def.map_class()
         # The ordering and names of the keys are given by class_def.keys.
         for key in class_def.keys:
             (value, values) = unmarshall_internal(values, mode, context)

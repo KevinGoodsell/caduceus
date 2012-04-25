@@ -169,7 +169,7 @@ The optional 'mode' argument has the same meaning as the 'unmarshall' argument
 for Handle.submit(). Using STAF.UNMARSHALL_NONE makes both of these functions
 no-ops, but is still supported for consistency with Handle.submit().
 
-STAF has six data types that can appear in marshalled strings. This data types
+STAF has six data types that can appear in marshalled strings. These data types
 and the corresponding Python type used to represent the unmarshalled forms are
 as follows:
 
@@ -201,8 +201,8 @@ object" that may use those definitions. The root object is the interesting part,
 and when a Marshalling Context is unmarshalled, this is the only part that is
 returned. Thus, when unmarshalling is performed on a marshalled Marshalling
 Context, the result will be one of the other types. Any Map Class Definitions
-are always accessible through the 'definition' attribute of a corresponding
-STAF.MapClass instance.
+are implied by the structure of the corresponding STAF.MapClass, and an instance
+of MapClassDefinition can be created with the definition() method.
 
 class MapClass(dict)
 
@@ -210,35 +210,36 @@ class MapClass(dict)
     normal dict, but has a few additional attributes and restrictions, and some
     slightly modified behaviors.
 
-    The main restriction is that you must not add keys to or remove keys from a
-    MapClass, because the structure of a MapClass is externally imposed by a
-    MapClassDefinition. This is currently not enforced, but bad things will
-    probably happen if you do it.
-
-    The methods 'viewitems', 'viewkeys', and 'viewvalues' are not supported in
-    MapClasses.
+    The main restriction is that you may not add keys to or remove keys from a
+    MapClass, because the structure of a MapClass is imposed by the Map Class
+    Definition.
 
     MapClasses impose an ordering on the items they contain. This ordering is
-    determined by the corresponding MapClassDefinition. What this means is that
-    the various methods that return iterators over keys, values, or both will
-    always produce items in the same order. Likewise methods that return a list
-    of keys, values, or both will always have the items ordered in the same way.
-    This can be useful for printing formatted tables of MapClass items.
+    determined by the MapClassDefinition used to create the MapClass. What this
+    means is that the various methods that return iterators over keys, values,
+    or both will always produce items in the order given by the Map Class
+    Definition. Likewise methods that return a list of keys, values, or both
+    will always have the items ordered in the same way. This can be useful for
+    printing formatted tables of MapClass items.
 
-    The following extra attributes are available:
+    The following extra attributes and methods are available:
 
-    mapclass.definition
+    mapclass.class_name
 
-        This instance attribute is a reference to a STAF.MapClassDefinition
-        instance that defines the keys, item ordering, and key display names for
-        the MapClass.
+        This instance attribute gives the name of the Map Class, which comes
+        frome the Map Class Definition.
+
+    mapclass.definition()
+
+        This method creates a new instance of MapClassDefinition that describes
+        the structure of this MapClass.
 
     mapclass.display_name(key)
     mapclass.display_short_name(key)
 
-        These are convenience methods for calling
-        mapclass.definition.display_name(key) and
-        mapclass.definition.display_short_name(key), respectively.
+        Returns the display name or short display name for the given key.
+        display_short_name() will return None if no short display name was
+        defined for the key.
 
 class MapClassDefinition(object)
 
@@ -248,13 +249,9 @@ class MapClassDefinition(object)
     Short display names may exist for some keys in the MapClassDefinition and
     not others.
 
-    MapClassDefinitions are used by MapClasses. There's nothing wrong with using
-    MapClassDefinitions directly, but it shouldn't be necessary most of the
-    time.
-
-    Note that a MapClassDefinition should not be modified once it has been used
-    to create a MapClass, since this would invalidate the structure of any
-    MapClass using the MapClassDefinition.
+    MapClassDefinitions are used to create MapClasses. There's nothing wrong
+    with using MapClassDefinitions directly, but it shouldn't be necessary most
+    of the time.
 
     The following attributes are available:
 
