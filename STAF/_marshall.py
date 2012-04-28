@@ -108,11 +108,13 @@ class MapClassDefinition(object):
         '''
         return self._names[key][1]
 
-    def map_class(self):
+    def map_class(self, *args, **kwargs):
         '''
         Return a MapClass instance based on this definition.
         '''
-        return MapClass(self.name, self.keys, self._names)
+        cls = MapClass(self.name, self.keys, self._names)
+        cls.update(*args, **kwargs)
+        return cls
 
 def add_docstring(method):
     '''
