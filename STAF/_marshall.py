@@ -177,6 +177,10 @@ class MapClass(dict):
     # Overrides to prevent adding/removing keys.
 
     def __setitem__(self, key, value):
+        '''
+        Implements self[key] = value, but raises KeyError if key is not in the
+        Map Class Definition.
+        '''
         if key in self._names:
             super(MapClass, self).__setitem__(key, value)
         else:
@@ -199,12 +203,20 @@ class MapClass(dict):
         raise NotImplementedError('popitem() is not supported in MapClass')
 
     def setdefault(key, default=None):
+        '''
+        Modified dict.setdefault, raises KeyError if the key is not in the Map
+        Class Definition.
+        '''
         if key in self:
             return super(MapClass, self).setdefault(key, default)
         else:
             raise KeyError(key)
 
     def update(self, *args, **kwargs):
+        '''
+        Modified dict.update, raises KeyError if the any key is not in the Map
+        Class Definition.
+        '''
         as_dict = dict(*args, **kwargs)
         for key in as_dict.iterkeys():
             if key not in self:
@@ -246,9 +258,6 @@ class MapClass(dict):
 
         return '{%s}' % ', '.join(items)
 
-    add_docstring(__setitem__)
-    add_docstring(setdefault)
-    add_docstring(update)
     add_docstring(__iter__)
     add_docstring(iterkeys)
     add_docstring(keys)
