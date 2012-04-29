@@ -204,7 +204,7 @@ class MapClass(dict):
         'Not supported, raises NotImplementedError.'
         raise NotImplementedError('popitem() is not supported in MapClass')
 
-    def setdefault(key, default=None):
+    def setdefault(self, key, default=None):
         '''
         Modified dict.setdefault, raises KeyError if the key is not in the Map
         Class Definition.
@@ -224,7 +224,7 @@ class MapClass(dict):
             if key not in self:
                 raise KeyError(key)
 
-        self.update(as_dict)
+        super(MapClass, self).update(as_dict)
 
     # Overrides to preserve ordering on item access.
 

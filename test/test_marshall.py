@@ -10,6 +10,7 @@ from STAF import (
     STAFUnmarshallError,
     UNMARSHALL_NON_RECURSIVE,
     UNMARSHALL_NONE,
+    MapClassDefinition,
 )
 
 class Unmarshall(unittest.TestCase):
@@ -264,6 +265,113 @@ class Unmarshall(unittest.TestCase):
         self.assertEqual(unmarshall(s), [[]])
         self.assertEqual(unmarshall(s, UNMARSHALL_NON_RECURSIVE),
                          ['@SDT/[0:0:'])
+
+
+class MapClassDefinitionTests(unittest.TestCase):
+    def testBasicMapClass(self):
+        defn = MapClassDefinition('species')
+        defn.add_item('common', 'Common Name', 'Common')
+        defn.add_item('genus', 'Genus')
+        defn.add_item('species', 'Species')
+
+        # https://en.wikipedia.org/wiki/List_of_moths
+
+        # A few different ways to populate items:
+        atlas = defn.map_class()
+        atlas['common'] = 'Atlas moth'
+        atlas['genus'] = 'Attacus'
+        atlas['species'] = 'atlas'
+
+        gypsy = defn.map_class()
+        gypsy.update(common='Gypsy moth', species='dispar', genus='Lymantria')
+
+        peppered = defn.map_class(common='Peppered moth', genus='Biston',
+                                  species='betularia')
+
+        # Make definition from class:
+        defn2 = peppered.definition()
+        self.assertEqual(defn.keys, defn2.keys)
+
+        # Use new definition:
+        zea = defn2.map_class([('common', 'Corn earworm'),
+                               ('genus', 'Helicoverpa'), ('species', 'zea')])
+
+        # Modify:
+        zea['common'] = 'Cotton bollworm'
+
+        # Invalid modifications:
+        self.assertRaises(NotImplementedError, atlas.__delitem__, 'common')
+        self.assertRaises(NotImplementedError, atlas.clear)
+        self.assertRaises(NotImplementedError, atlas.pop, 'common', None)
+        self.assertRaises(NotImplementedError, atlas.popitem)
+        self.assertRaises(KeyError, atlas.__setitem__, 'name', 'Mothra')
+        self.assertRaises(KeyError, atlas.setdefault, 'name', 'Mothra')
+        self.assertRaises(KeyError, atlas.update, name='Mothra')
+
+        # Check key ordering:
+        moths = [atlas, gypsy, peppered, zea]
+        keys = ['common', 'genus', 'species']
+        for moth in moths:
+            self.assertEqual(list(moth), keys)
+            self.assertEqual(list(moth.iterkeys()), keys)
+            self.assertEqual(moth.keys(), keys)
+
+        # Check value ordering:
+        values = ['Cotton bollworm', 'Helicoverpa', 'zea']
+        self.assertEqual(zea.values(), values)
+        self.assertEqual(list(zea.itervalues()), values)
+
+        # Check item ordering:
+        items = [('common', 'Cotton bollworm'), ('genus', 'Helicoverpa'),
+                 ('species', 'zea')]
+        self.assertEqual(zea.items(), items)
+        self.assertEqual(list(zea.iteritems()), items)
+
+        # Check long & short display names
+        for moth in moths:
+            self.assertEqual(moth.display_name('common'), 'Common Name')
+            self.assertEqual(moth.display_name('genus'), 'Genus')
+            self.assertEqual(moth.display_name('species'), 'Species')
+
+            self.assertEqual(moth.display_short_name('common'), 'Common')
+            self.assertTrue(moth.display_short_name('genus') is None)
+            self.assertTrue(moth.display_short_name('species') is None)
+
+
+    def testModifyDefinition(self):
+        defn = MapClassDefinition('definition')
+        defn.add_item('key1', 'Display Name', 'Short Name')
+        defn.add_item('key2', 'Display Name 2')
+
+        mc1 = defn.map_class()
+
+        defn.add_item('key3', 'Display Name 3')
+
+        mc2 = defn.map_class()
+
+        # Map Classes have the right keys:
+        self.assertEqual(mc1.keys(), ['key1', 'key2'])
+        self.assertEqual(mc2.keys(), ['key1', 'key2', 'key3'])
+
+        # Definitions from MapClasses have the right keys & display names:
+        def1 = mc1.definition()
+        self.assertEqual(def1.name, 'definition')
+        self.assertEqual(def1.keys, ['key1', 'key2'])
+        self.assertEqual(def1.display_name('key1'), 'Display Name')
+        self.assertEqual(def1.display_name('key2'), 'Display Name 2')
+        self.assertEqual(def1.display_short_name('key1'), 'Short Name')
+        self.assertTrue(def1.display_short_name('key2') is None)
+
+        def2 = mc2.definition()
+        self.assertEqual(def2.name, 'definition')
+        self.assertEqual(def2.keys, ['key1', 'key2', 'key3'])
+        self.assertEqual(def2.display_name('key1'), 'Display Name')
+        self.assertEqual(def2.display_name('key2'), 'Display Name 2')
+        self.assertEqual(def2.display_name('key3'), 'Display Name 3')
+        self.assertEqual(def2.display_short_name('key1'), 'Short Name')
+        self.assertTrue(def2.display_short_name('key2') is None)
+        self.assertTrue(def2.display_short_name('key3') is None)
+
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)
