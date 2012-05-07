@@ -129,7 +129,8 @@ class MapClass(dict):
     way. It also has 'display_name' and 'display_short_name' methods for getting
     the display names for a key.
 
-    Adding and removing keys are not supported.
+    Adding and removing keys are not supported. Methods that would return views
+    in a normal dict return lists instead.
     '''
 
     def __init__(self, class_name, keys, disp_names):
@@ -259,6 +260,28 @@ class MapClass(dict):
             items.append('%r: %r' % (k, v))
 
         return '{%s}' % ', '.join(items)
+
+    if hasattr(dict, 'viewitems'):
+        def viewitems(self):
+            '''
+            Return a list of keys, value pairs. This should technically be a
+            view, but we need to maintain ordering.
+            '''
+            return self.items()
+
+        def viewkeys(self):
+            '''
+            Return a list of keys. This should technically be a view, but we
+            need to maintain ordering.
+            '''
+            return self.keys()
+
+        def viewvalues(self):
+            '''
+            Return a list of values. This should technically be a view, but we
+            need to maintain ordering.
+            '''
+            return self.values()
 
     add_docstring(__iter__)
     add_docstring(iterkeys)

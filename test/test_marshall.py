@@ -327,6 +327,13 @@ class MapClassDefinitionTests(unittest.TestCase):
         self.assertEqual(zea.items(), items)
         self.assertEqual(list(zea.iteritems()), items)
 
+        # Same stuff for views, if supported.
+        if hasattr(dict, 'viewitems'):
+            for moth in moths:
+                self.assertEqual(list(moth.viewkeys()), keys)
+            self.assertEqual(list(zea.viewvalues()), values)
+            self.assertEqual(list(zea.viewitems()), items)
+
         # Check long & short display names
         for moth in moths:
             self.assertEqual(moth.display_name('common'), 'Common Name')

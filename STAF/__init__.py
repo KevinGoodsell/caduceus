@@ -216,11 +216,10 @@ class MapClass(dict)
 
     MapClasses impose an ordering on the items they contain. This ordering is
     determined by the MapClassDefinition used to create the MapClass. What this
-    means is that the various methods that return iterators over keys, values,
+    means is that the various methods of iterating over or listing keys, values,
     or both will always produce items in the order given by the Map Class
-    Definition. Likewise methods that return a list of keys, values, or both
-    will always have the items ordered in the same way. This can be useful for
-    printing formatted tables of MapClass items.
+    Definition. Methods that return views in normal dicts return lists instead.
+    This ordering can be useful for printing formatted tables of MapClass items.
 
     The following extra attributes and methods are available:
 
