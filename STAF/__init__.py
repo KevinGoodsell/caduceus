@@ -328,11 +328,14 @@ from ._marshall import (
     unmarshall,
     unmarshall_force,
     STAFUnmarshallError,
-    MapClassDefinition,
-    MapClass,
     UNMARSHALL_RECURSIVE,
     UNMARSHALL_NON_RECURSIVE,
     UNMARSHALL_NONE,
+)
+
+from ._mapclass import (
+    MapClassDefinition,
+    MapClass,
 )
 
 # Clean up names. This gives 'STAF.Handle' istead of 'STAF._staf.Handle'
