@@ -146,7 +146,7 @@ class String(object):
 
         try:
             utf8 = data.encode('utf-8')
-            StringConstruct(ctypes.byref(self._as_parameter_), utf8,len(utf8),
+            StringConstruct(ctypes.byref(self._as_parameter_), utf8, len(utf8),
                             None)
         except:
             self.destroy()
