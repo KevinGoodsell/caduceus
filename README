@@ -37,7 +37,6 @@ Caduceus has the following improvements over PySTAF:
 
 However, the following disadvantages also apply:
 
-* Currently no Python 3.x support.
 * No support for Python versions before 2.5 (because of the dependence
   on ctypes and context managers)
 
