@@ -25,24 +25,21 @@ class SetLikeView(View):
     operations).
     '''
     def __and__(self, other):
-        return self._as_set().intersection(other)
+        return set(self).intersection(other)
 
     def __or__(self, other):
-        return self._as_set().union(other)
+        return set(self).union(other)
 
     def __xor__(self, other):
-        return self._as_set().symmetric_difference(other)
+        return set(self).symmetric_difference(other)
 
     def __sub__(self, other):
-        return self._as_set().difference(other)
+        return set(self).difference(other)
 
 class KeyView(SetLikeView):
     '''
     Class for MapClass key views.
     '''
-    def _as_set(self):
-        return set(self._mc._keys)
-
     def __contains__(self, val):
         return val in self._mc
 
@@ -53,9 +50,6 @@ class ItemView(SetLikeView):
     '''
     Class for MapClass item views.
     '''
-    def _as_set(self):
-        return set(self._mc.iteritems())
-
     def __contains__(self, val):
         (key, value) = val
         return key in self._mc and self._mc[key] == value
