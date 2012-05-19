@@ -3,6 +3,7 @@
 # This software is licensed under the Eclipse Public License (EPL) V1.0.
 
 import unittest
+import operator
 
 from STAF import (
     unmarshall,
@@ -297,7 +298,10 @@ class MapClassDefinitionTests(unittest.TestCase):
                                ('genus', 'Helicoverpa'), ('species', 'zea')])
 
         # Modify:
+        it = zea.iteritems()
         zea['common'] = 'Cotton bollworm'
+        # Iterators pick up changes during iteration.
+        self.assertEqual(it.next(), ('common', 'Cotton bollworm'))
 
         # Invalid modifications:
         self.assertRaises(NotImplementedError, atlas.__delitem__, 'common')
@@ -379,6 +383,115 @@ class MapClassDefinitionTests(unittest.TestCase):
         self.assertTrue(def2.display_short_name('key2') is None)
         self.assertTrue(def2.display_short_name('key3') is None)
 
+    def testViews(self):
+        if not hasattr(dict, 'viewkeys'):
+            print 'Skipping view tests'
+            return
+
+        defn = MapClassDefinition('class-name')
+        defn.add_item('alpha', 'Alpha')
+        defn.add_item('beta', 'Beta')
+        defn.add_item('gamma', 'Gamma')
+        defn.add_item('delta', 'Delta')
+
+        mc = defn.map_class(alpha='the first', beta='the second',
+                            gamma='the third', delta='the fourth')
+        keys = mc.viewkeys()
+        values = mc.viewvalues()
+        items = mc.viewitems()
+
+        # __len__
+        self.assertEqual(len(keys), 4)
+        self.assertEqual(len(values), 4)
+        self.assertEqual(len(items), 4)
+
+        # __contains__
+        self.assertTrue('alpha' in keys)
+        self.assertTrue('the second' in values)
+        self.assertTrue(('gamma', 'the third') in items)
+
+        self.assertFalse('omega' in keys)
+        self.assertFalse('the fifth' in values)
+        self.assertFalse(('omega', 'the fifth') in items)
+
+        self.assertTrue('omega' not in keys)
+        self.assertTrue('the fifth' not in values)
+        self.assertTrue(('omega', 'the fifth') not in items)
+
+        self.assertFalse('alpha' not in keys)
+        self.assertFalse('the second' not in values)
+        self.assertFalse(('gamma', 'the third') not in items)
+
+        # __and__
+        self.assertEqual(
+            keys & ['alpha', 'gamma', 'omega'],
+            set(['alpha', 'gamma'])
+        )
+        self.assertEqual(
+            items & [('beta', 'the second'), 3],
+            set([('beta', 'the second')])
+        )
+
+        # __or__
+        self.assertEqual(
+            keys | ['omega'],
+            set(['alpha', 'beta', 'gamma', 'delta', 'omega'])
+        )
+        self.assertEqual(
+            items | [10],
+            set([('alpha', 'the first'), ('beta', 'the second'),
+                 ('gamma', 'the third'), ('delta', 'the fourth'), 10])
+        )
+
+        # __sub__
+        self.assertEqual(
+            keys - ['beta', 'omega'],
+            set(['alpha', 'gamma', 'delta'])
+        )
+        self.assertEqual(
+            items - [('beta', 'the second'), ('omega', 'not there')],
+            set([('alpha', 'the first'), ('gamma', 'the third'),
+                 ('delta', 'the fourth')])
+        )
+
+        # __xor__
+        self.assertEqual(
+            keys ^ ['beta', 'omega'],
+            set(['alpha', 'gamma', 'delta', 'omega'])
+        )
+        self.assertEqual(
+            items ^ [('beta', 'the second'), ('omega', 'the last')],
+            set([('alpha', 'the first'), ('gamma', 'the third'),
+                 ('delta', 'the fourth'), ('omega', 'the last')])
+        )
+
+        # no set ops for value views
+        self.assertRaises(TypeError, operator.and_, values, set())
+        self.assertRaises(TypeError, operator.or_, values, set())
+        self.assertRaises(TypeError, operator.sub, values, set())
+        self.assertRaises(TypeError, operator.xor, values, set())
+
+        # no set ops for item views with unhashable values
+        mc['delta'] = [1]
+        self.assertRaises(TypeError, operator.and_, items, set())
+        self.assertRaises(TypeError, operator.or_, items, set())
+        self.assertRaises(TypeError, operator.sub, items, set())
+        self.assertRaises(TypeError, operator.xor, items, set())
+
+        # Changes during iteration
+        value_it = iter(values)
+        item_it = iter(items)
+        self.assertEqual(value_it.next(), 'the first')
+        self.assertEqual(value_it.next(), 'the second')
+        self.assertEqual(item_it.next(), ('alpha', 'the first'))
+        self.assertEqual(item_it.next(), ('beta', 'the second'))
+        mc['gamma'] = '3rd'
+        self.assertEqual(value_it.next(), '3rd')
+        self.assertEqual(item_it.next(), ('gamma', '3rd'))
+        mc['gamma'] = 'Third'
+        mc['delta'] = 'Fourth'
+        self.assertEqual(value_it.next(), 'Fourth')
+        self.assertEqual(item_it.next(), ('delta', 'Fourth'))
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)

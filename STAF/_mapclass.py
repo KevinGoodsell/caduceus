@@ -9,6 +9,72 @@ dict. It also provides display_name() and display_short_name() to access those
 attributes if desired.
 '''
 
+class View(object):
+    '''
+    Base class for MapClass views.
+    '''
+    def __init__(self, mc):
+        self._mc = mc
+
+    def __len__(self):
+        return len(self._mc)
+
+class SetLikeView(View):
+    '''
+    Base class for MapClass key views and item views (those that support set
+    operations).
+    '''
+    def __and__(self, other):
+        return self._as_set().intersection(other)
+
+    def __or__(self, other):
+        return self._as_set().union(other)
+
+    def __xor__(self, other):
+        return self._as_set().symmetric_difference(other)
+
+    def __sub__(self, other):
+        return self._as_set().difference(other)
+
+class KeyView(SetLikeView):
+    '''
+    Class for MapClass key views.
+    '''
+    def _as_set(self):
+        return set(self._mc._keys)
+
+    def __contains__(self, val):
+        return val in self._mc
+
+    def __iter__(self):
+        return iter(self._mc._keys)
+
+class ItemView(SetLikeView):
+    '''
+    Class for MapClass item views.
+    '''
+    def _as_set(self):
+        return set(self._mc.iteritems())
+
+    def __contains__(self, val):
+        (key, value) = val
+        return key in self._mc and self._mc[key] == value
+
+    def __iter__(self):
+        for key in self._mc._keys:
+            yield (key, self._mc[key])
+
+class ValueView(View):
+    '''
+    Class for MapClass value views.
+    '''
+    def __contains__(self, val):
+        return val in list(self)
+
+    def __iter__(self):
+        for key in self._mc._keys:
+            yield self._mc[key]
+
 class MapClassDefinition(object):
     '''
     Represents a map class definition, which provides the set of key names and
@@ -66,8 +132,7 @@ class MapClass(dict):
     way. It also has 'display_name' and 'display_short_name' methods for getting
     the display names for a key.
 
-    Adding and removing keys are not supported. Methods that would return views
-    in a normal dict return lists instead.
+    Adding and removing keys are not supported.
     '''
 
     def __init__(self, class_name, keys, disp_names):
@@ -200,25 +265,17 @@ class MapClass(dict):
 
     if hasattr(dict, 'viewitems'):
         def viewitems(self):
-            '''
-            Return a list of keys, value pairs. This should technically be a
-            view, but we need to maintain ordering.
-            '''
-            return self.items()
+            return ItemView(self)
 
         def viewkeys(self):
-            '''
-            Return a list of keys. This should technically be a view, but we
-            need to maintain ordering.
-            '''
-            return self.keys()
+            return KeyView(self)
 
         def viewvalues(self):
-            '''
-            Return a list of values. This should technically be a view, but we
-            need to maintain ordering.
-            '''
-            return self.values()
+            return ValueView(self)
+
+        add_docstring(viewitems)
+        add_docstring(viewkeys)
+        add_docstring(viewvalues)
 
     add_docstring(__iter__)
     add_docstring(iterkeys)

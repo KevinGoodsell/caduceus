@@ -218,8 +218,8 @@ class MapClass(dict)
     determined by the MapClassDefinition used to create the MapClass. What this
     means is that the various methods of iterating over or listing keys, values,
     or both will always produce items in the order given by the Map Class
-    Definition. Methods that return views in normal dicts return lists instead.
-    This ordering can be useful for printing formatted tables of MapClass items.
+    Definition. This ordering can be useful for printing formatted tables of
+    MapClass items.
 
     The following extra attributes and methods are available:
 
