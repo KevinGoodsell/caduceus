@@ -65,7 +65,7 @@ def main(args=None):
     # Collect error descriptions from HELP service
     code_descriptions = get_error_descriptions()
 
-    name_len = max([len(name) for name in code_names.values()]) + 4
+    name_len = max([len(name) for name in code_names.itervalues()]) + 4
 
     for (code, name) in sorted(code_names.items()):
         description = code_descriptions.pop(code, None)
