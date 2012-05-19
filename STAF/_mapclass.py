@@ -228,25 +228,14 @@ class MapClass(dict):
     def __iter__(self):
         return iter(self._keys)
 
-    def iterkeys(self):
-        return iter(self._keys)
-
     def keys(self):
-        return list(self.keys())
-
-    def itervalues(self):
-        for key in self._keys:
-            yield self[key]
+        return KeyView(self)
 
     def values(self):
-        return list(self.values())
-
-    def iteritems(self):
-        for key in self._keys:
-            yield (key, self[key])
+        return ValueView(self)
 
     def items(self):
-        return list(self.items())
+        return ItemView(self)
 
     # The default dict repr would be fine, but the order of the fields is kind
     # of important for MapClass instances.
@@ -257,25 +246,8 @@ class MapClass(dict):
 
         return '{%s}' % ', '.join(items)
 
-    if hasattr(dict, 'viewitems'):
-        def viewitems(self):
-            return ItemView(self)
-
-        def viewkeys(self):
-            return KeyView(self)
-
-        def viewvalues(self):
-            return ValueView(self)
-
-        add_docstring(viewitems)
-        add_docstring(viewkeys)
-        add_docstring(viewvalues)
-
     add_docstring(__iter__)
-    add_docstring(iterkeys)
     add_docstring(keys)
-    add_docstring(itervalues)
     add_docstring(values)
-    add_docstring(iteritems)
     add_docstring(items)
     add_docstring(__repr__)

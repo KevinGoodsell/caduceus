@@ -73,10 +73,7 @@ def main(args=None):
             raise Exception('No description found for error %r' % name)
 
         name_str = "'%s'," % name
-        # description will be unicode, str() conversion prevents having them
-        # print as unicode literals.
-        print("    %-4d : (%-*s%r)," % (code, name_len, name_str,
-                                        str(description)))
+        print("    %-4d : (%-*s%r)," % (code, name_len, name_str, description))
 
     return 0
 

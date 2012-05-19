@@ -162,7 +162,7 @@ class String(object):
     def __bool__(self):
         return bool(self._as_parameter_)
 
-    def __unicode__(self):
+    def __str__(self):
         buf = ctypes.POINTER(ctypes.c_char)()
         length = ctypes.c_uint()
         StringGetBuffer(self, ctypes.byref(buf), ctypes.byref(length), None)

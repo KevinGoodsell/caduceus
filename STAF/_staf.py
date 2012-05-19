@@ -5,8 +5,6 @@
 Python versions of STAF APIs.
 '''
 
-
-
 import ctypes
 
 from . import _api

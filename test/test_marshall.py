@@ -318,25 +318,15 @@ class MapClassDefinitionTests(unittest.TestCase):
         for moth in moths:
             self.assertEqual(list(moth), keys)
             self.assertEqual(list(moth.keys()), keys)
-            self.assertEqual(list(moth.keys()), keys)
 
         # Check value ordering:
         values = ['Cotton bollworm', 'Helicoverpa', 'zea']
-        self.assertEqual(list(zea.values()), values)
         self.assertEqual(list(zea.values()), values)
 
         # Check item ordering:
         items = [('common', 'Cotton bollworm'), ('genus', 'Helicoverpa'),
                  ('species', 'zea')]
         self.assertEqual(list(zea.items()), items)
-        self.assertEqual(list(zea.items()), items)
-
-        # Same stuff for views, if supported.
-        if hasattr(dict, 'viewitems'):
-            for moth in moths:
-                self.assertEqual(list(moth.keys()), keys)
-            self.assertEqual(list(zea.values()), values)
-            self.assertEqual(list(zea.items()), items)
 
         # Check long & short display names
         for moth in moths:
@@ -384,10 +374,6 @@ class MapClassDefinitionTests(unittest.TestCase):
         self.assertTrue(def2.display_short_name('key3') is None)
 
     def testViews(self):
-        if not hasattr(dict, 'viewkeys'):
-            print('Skipping view tests')
-            return
-
         defn = MapClassDefinition('class-name')
         defn.add_item('alpha', 'Alpha')
         defn.add_item('beta', 'Beta')
