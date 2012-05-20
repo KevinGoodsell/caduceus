@@ -76,7 +76,7 @@ class errors(object):
     '''
     Constants for STAF errors.
     '''
-    for (rc, (name, description)) in _return_codes.iteritems():
+    for (rc, (name, description)) in _return_codes.items():
         locals()[name] = rc
 
     del rc

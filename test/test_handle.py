@@ -2,7 +2,7 @@
 #
 # This software is licensed under the Eclipse Public License (EPL) V1.0.
 
-from __future__ import with_statement
+
 
 import time
 import unittest
@@ -15,7 +15,7 @@ class HandleTests(unittest.TestCase):
         try:
             func(*args, **kwargs)
             self.fail('STAFResultError not raised')
-        except STAF.STAFResultError, exc:
+        except STAF.STAFResultError as exc:
             self.assertEqual(exc.rc, rc)
 
     def testBasicHandle(self):

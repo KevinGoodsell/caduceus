@@ -251,7 +251,7 @@ class Unmarshall(unittest.TestCase):
         for s in bad_strings:
             try:
                 self.assertRaises(STAFUnmarshallError, unmarshall_force, s)
-            except AssertionError, e:
+            except AssertionError as e:
                 # Hack the string info into the error.
                 e.args = ('STAFUnmarshallError not raised for %r' % s,)
                 raise
@@ -298,10 +298,10 @@ class MapClassDefinitionTests(unittest.TestCase):
                                ('genus', 'Helicoverpa'), ('species', 'zea')])
 
         # Modify:
-        it = zea.iteritems()
+        it = iter(zea.items())
         zea['common'] = 'Cotton bollworm'
         # Iterators pick up changes during iteration.
-        self.assertEqual(it.next(), ('common', 'Cotton bollworm'))
+        self.assertEqual(next(it), ('common', 'Cotton bollworm'))
 
         # Invalid modifications:
         self.assertRaises(NotImplementedError, atlas.__delitem__, 'common')
@@ -317,26 +317,26 @@ class MapClassDefinitionTests(unittest.TestCase):
         keys = ['common', 'genus', 'species']
         for moth in moths:
             self.assertEqual(list(moth), keys)
-            self.assertEqual(list(moth.iterkeys()), keys)
-            self.assertEqual(moth.keys(), keys)
+            self.assertEqual(list(moth.keys()), keys)
+            self.assertEqual(list(moth.keys()), keys)
 
         # Check value ordering:
         values = ['Cotton bollworm', 'Helicoverpa', 'zea']
-        self.assertEqual(zea.values(), values)
-        self.assertEqual(list(zea.itervalues()), values)
+        self.assertEqual(list(zea.values()), values)
+        self.assertEqual(list(zea.values()), values)
 
         # Check item ordering:
         items = [('common', 'Cotton bollworm'), ('genus', 'Helicoverpa'),
                  ('species', 'zea')]
-        self.assertEqual(zea.items(), items)
-        self.assertEqual(list(zea.iteritems()), items)
+        self.assertEqual(list(zea.items()), items)
+        self.assertEqual(list(zea.items()), items)
 
         # Same stuff for views, if supported.
         if hasattr(dict, 'viewitems'):
             for moth in moths:
-                self.assertEqual(list(moth.viewkeys()), keys)
-            self.assertEqual(list(zea.viewvalues()), values)
-            self.assertEqual(list(zea.viewitems()), items)
+                self.assertEqual(list(moth.keys()), keys)
+            self.assertEqual(list(zea.values()), values)
+            self.assertEqual(list(zea.items()), items)
 
         # Check long & short display names
         for moth in moths:
@@ -361,8 +361,8 @@ class MapClassDefinitionTests(unittest.TestCase):
         mc2 = defn.map_class()
 
         # Map Classes have the right keys:
-        self.assertEqual(mc1.keys(), ['key1', 'key2'])
-        self.assertEqual(mc2.keys(), ['key1', 'key2', 'key3'])
+        self.assertEqual(list(mc1.keys()), ['key1', 'key2'])
+        self.assertEqual(list(mc2.keys()), ['key1', 'key2', 'key3'])
 
         # Definitions from MapClasses have the right keys & display names:
         def1 = mc1.definition()
@@ -385,7 +385,7 @@ class MapClassDefinitionTests(unittest.TestCase):
 
     def testViews(self):
         if not hasattr(dict, 'viewkeys'):
-            print 'Skipping view tests'
+            print('Skipping view tests')
             return
 
         defn = MapClassDefinition('class-name')
@@ -396,9 +396,9 @@ class MapClassDefinitionTests(unittest.TestCase):
 
         mc = defn.map_class(alpha='the first', beta='the second',
                             gamma='the third', delta='the fourth')
-        keys = mc.viewkeys()
-        values = mc.viewvalues()
-        items = mc.viewitems()
+        keys = mc.keys()
+        values = mc.values()
+        items = mc.items()
 
         # __len__
         self.assertEqual(len(keys), 4)
@@ -481,17 +481,17 @@ class MapClassDefinitionTests(unittest.TestCase):
         # Changes during iteration
         value_it = iter(values)
         item_it = iter(items)
-        self.assertEqual(value_it.next(), 'the first')
-        self.assertEqual(value_it.next(), 'the second')
-        self.assertEqual(item_it.next(), ('alpha', 'the first'))
-        self.assertEqual(item_it.next(), ('beta', 'the second'))
+        self.assertEqual(next(value_it), 'the first')
+        self.assertEqual(next(value_it), 'the second')
+        self.assertEqual(next(item_it), ('alpha', 'the first'))
+        self.assertEqual(next(item_it), ('beta', 'the second'))
         mc['gamma'] = '3rd'
-        self.assertEqual(value_it.next(), '3rd')
-        self.assertEqual(item_it.next(), ('gamma', '3rd'))
+        self.assertEqual(next(value_it), '3rd')
+        self.assertEqual(next(item_it), ('gamma', '3rd'))
         mc['gamma'] = 'Third'
         mc['delta'] = 'Fourth'
-        self.assertEqual(value_it.next(), 'Fourth')
-        self.assertEqual(item_it.next(), ('delta', 'Fourth'))
+        self.assertEqual(next(value_it), 'Fourth')
+        self.assertEqual(next(item_it), ('delta', 'Fourth'))
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)

@@ -236,7 +236,7 @@ class ContextUnmarshaller(Unmarshaller):
 
         # Build a map of names to MapClassDefinitions.
         new_context = {}
-        for (name, info) in class_map.iteritems():
+        for (name, info) in class_map.items():
             class_def = MapClassDefinition(name)
             for item in info['keys']:
                 class_def.add_item(item['key'], item['display-name'],

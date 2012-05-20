@@ -5,7 +5,7 @@
 Python versions of STAF APIs.
 '''
 
-from __future__ import with_statement
+
 
 import ctypes
 
@@ -37,7 +37,7 @@ class Handle(object):
         number of a previously registered static handle. Note that static
         handles don't get unregistered, even if you call unregister().
         '''
-        if isinstance(name, basestring):
+        if isinstance(name, str):
             handle = _api.Handle_t()
             _api.RegisterUTF8(name, ctypes.byref(handle))
             self._handle = handle.value
@@ -82,7 +82,7 @@ class Handle(object):
 
     @classmethod
     def _build_request(cls, request):
-        if isinstance(request, basestring):
+        if isinstance(request, str):
             return request
 
         result = []
@@ -108,7 +108,7 @@ class Handle(object):
         if not self._static:
             try:
                 _api.UnRegister(self._handle)
-            except STAFResultError, exc:
+            except STAFResultError as exc:
                 # If the handle isn't registered, we got what we wanted. This
                 # could happen if the STAF server restarts.
                 if exc.rc != errors.HandleDoesNotExist:
@@ -176,7 +176,7 @@ def _string_translate(data, translator):
     with _api.String(data) as instr:
         with _api.String() as result:
             translator(instr, result.byref())
-            return unicode(result)
+            return str(result)
 
 def add_privacy_delimiters(data):
     '''

@@ -159,7 +159,7 @@ class String(object):
         if self._as_parameter_:
             StringDestruct(ctypes.byref(self._as_parameter_), None)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._as_parameter_)
 
     def __unicode__(self):

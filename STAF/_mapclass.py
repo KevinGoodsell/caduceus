@@ -217,7 +217,7 @@ class MapClass(dict):
         Class Definition.
         '''
         as_dict = dict(*args, **kwargs)
-        for key in as_dict.iterkeys():
+        for key in as_dict.keys():
             if key not in self:
                 raise KeyError(key)
 
@@ -232,27 +232,27 @@ class MapClass(dict):
         return iter(self._keys)
 
     def keys(self):
-        return list(self.iterkeys())
+        return list(self.keys())
 
     def itervalues(self):
         for key in self._keys:
             yield self[key]
 
     def values(self):
-        return list(self.itervalues())
+        return list(self.values())
 
     def iteritems(self):
         for key in self._keys:
             yield (key, self[key])
 
     def items(self):
-        return list(self.iteritems())
+        return list(self.items())
 
     # The default dict repr would be fine, but the order of the fields is kind
     # of important for MapClass instances.
     def __repr__(self):
         items = []
-        for (k, v) in self.iteritems():
+        for (k, v) in self.items():
             items.append('%r: %r' % (k, v))
 
         return '{%s}' % ', '.join(items)

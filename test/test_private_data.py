@@ -23,8 +23,8 @@ class PrivateData(unittest.TestCase):
                          '!!@' + wierd_chars + '@!!')
 
         # Unicode, using some latin-1 and braile chars
-        text = u'¿ÀÁÂÃÄÅÆÇ⠑⠒⠓'
-        self.assertEqual(add_privacy_delimiters(text), u'!!@' + text + u'@!!')
+        text = '¿ÀÁÂÃÄÅÆÇ⠑⠒⠓'
+        self.assertEqual(add_privacy_delimiters(text), '!!@' + text + '@!!')
 
         # Double-application has no effect:
         self.assertEqual(add_privacy_delimiters(add_privacy_delimiters('foo')),
@@ -65,8 +65,8 @@ class PrivateData(unittest.TestCase):
                          'foobarbaz')
 
         # Removal with unicode (mixed character length)
-        self.assertEqual(remove_privacy_delimiters(u'¿ÀÁA!!@ÂÃAÄÅ@!!ÆAÇ⠑⠒⠓'),
-                         u'¿ÀÁAÂÃAÄÅÆAÇ⠑⠒⠓')
+        self.assertEqual(remove_privacy_delimiters('¿ÀÁA!!@ÂÃAÄÅ@!!ÆAÇ⠑⠒⠓'),
+                         '¿ÀÁAÂÃAÄÅÆAÇ⠑⠒⠓')
 
         # Multi-level delims with un-escaping
         nested = 'foo !!@ bar ^!!@ baz ^^@!! quux ^@!! more @!! blah'
