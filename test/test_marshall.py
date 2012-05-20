@@ -350,6 +350,17 @@ class MapClassDefinitionTests(unittest.TestCase):
             self.assertTrue(moth.display_short_name('genus') is None)
             self.assertTrue(moth.display_short_name('species') is None)
 
+        # Shallow copy:
+        orig = defn.map_class(common=['Comet moth'], genus='Argema',
+                              species='mittrei')
+        cpy = orig.copy()
+
+        self.assertEqual(type(orig), type(cpy))
+        self.assertEqual(orig.items(), cpy.items())
+        # Copy should be shallow
+        orig['common'].append('Madagascan moon moth')
+        self.assertEqual(orig.items(), cpy.items())
+
 
     def testModifyDefinition(self):
         defn = MapClassDefinition('definition')

@@ -261,6 +261,11 @@ class MapClass(dict):
 
         return '{%s}' % ', '.join(items)
 
+    def copy(self):
+        result = MapClass(self.class_name, self._keys, self._names)
+        result.update(self)
+        return result
+
     if hasattr(dict, 'viewitems'):
         def viewitems(self):
             return ItemView(self)
@@ -283,3 +288,4 @@ class MapClass(dict):
     add_docstring(iteritems)
     add_docstring(items)
     add_docstring(__repr__)
+    add_docstring(copy)
