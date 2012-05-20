@@ -274,6 +274,8 @@ class MapClassDefinitionTests(unittest.TestCase):
         defn.add_item('common', 'Common Name', 'Common')
         defn.add_item('genus', 'Genus')
         defn.add_item('species', 'Species')
+        # Duplicate key name:
+        self.assertRaises(ValueError, defn.add_item, 'genus', 'Genus')
 
         # https://en.wikipedia.org/wiki/List_of_moths
 

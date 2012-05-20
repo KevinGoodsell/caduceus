@@ -89,6 +89,10 @@ class MapClassDefinition(object):
         Add a key and a display name for it. Optionally include a short display
         name.
         '''
+        # No dupes allowed
+        if key in self._names:
+            raise ValueError('duplicate key name: %r' % key)
+
         self.keys.append(key)
         self._names[key] = (display_name, display_short_name)
 
